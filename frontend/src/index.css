@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surfaces */
+  --color-ink: #14161f;
+  --color-ink-soft: #1d2030;
+  --color-ink-softer: #262a3d;
+  --color-paper: #fbfaf8;
+  --color-paper-dim: #f0eee9;
+
+  /* Workflow-status accents: teal = Done/success, amber = In Progress/focus */
+  --color-accent-done: #1f9d7c;
+  --color-accent-done-dim: #17795f;
+  --color-accent-progress: #e8a33d;
+
+  /* Text + borders */
+  --color-muted: #6c7086;
+  --color-muted-dark: #9a9db3;
+  --color-border-light: #e3e0d8;
+  --color-border-dark: #2a2d3e;
+  --color-danger: #d64545;
+
+  /* Type */
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  /* Surfaces - app interior (dashboard onward): white + light blue, Jira-inspired */
+  --color-canvas: #f4f7fc;
+  --color-surface: #ffffff;
+  --color-topbar: #e4eefd;
+  --color-brand: #0c66e4;
+  --color-brand-dark: #0952b8;
+  --color-brand-light: #eaf2ff;
+
+  /* Priority accents */
+  --color-priority-low: #6c7086;
+  --color-priority-medium: #e8a33d;
+  --color-priority-high: #e0720c;
+  --color-priority-urgent: #d64545;
+
+  /* add to your existing border tokens */
+  --color-border-app: #e2e8f4;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+}
+
+@layer utilities {
+  .card-travel {
+    animation: card-travel 5s ease-in-out infinite;
+  }
+  .card-travel-check {
+    animation: card-travel-check 5s ease-in-out infinite;
+  }
+}
+
+@keyframes card-travel {
+  0%,
+  38% {
+    transform: translate(0, 0);
+    border-color: var(--color-accent-progress);
+  }
+  62%,
+  100% {
+    transform: translate(114px, 40px);
+    border-color: var(--color-accent-done);
+  }
+}
+
+@keyframes card-travel-check {
+  0%,
+  60% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  78%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-travel,
+  .card-travel-check {
+    animation: none;
+  }
+  .card-travel {
+    transform: translate(114px, 40px);
+    border-color: var(--color-accent-done);
+  }
+  .card-travel-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
