@@ -1,212 +1,215 @@
-# IPM — Authentication module
+<div align="center">
 
-This is the first working feature of the Intelligent Project Management
-System: account creation and login, with a NestJS + PostgreSQL backend and
-a React + Tailwind frontend, connected by a JWT.
+# IPM — Intelligent Project Management System
 
-Everything in this package has been built and tested end-to-end already:
-12 automated checks against the live backend (registration, duplicate
-emails, wrong passwords, protected routes, token validation) and 7
-automated checks that drive the actual React UI — filling in the forms and
-clicking the actual "Create account" / "Log in" / "Log out" buttons —
-against that same live backend. All 19 pass. Section 6 shows you how to
-re-run them yourself once it's set up.
+**Plan sprints, assign work, and track progress as a team — a full-stack
+project management platform built from the ground up.**
 
----
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)
+![Tested](https://img.shields.io/badge/tested-integration%20%2B%20API-1F9D7C)
 
-## 0. What you're installing
-
-Three separate pieces of software, all free:
-
-1. **Node.js** — lets your computer run JavaScript/TypeScript outside a
-   browser. Both the backend and frontend run on it.
-2. **PostgreSQL** — the database that stores users.
-3. **VS Code** — the code editor you'll work in.
-
-If you already have any of these, skip that step.
+</div>
 
 ---
 
-## 1. Install Node.js
+## Overview
 
-1. Go to **https://nodejs.org**
-2. Download the **LTS** version (not "Current") for your OS.
-3. Run the installer, accepting the defaults.
-4. Verify it worked — open a terminal (Windows: **Command Prompt** or
-   **PowerShell**; Mac: **Terminal**) and run:
-   ```
-   node --version
-   npm --version
-   ```
-   You should see version numbers (Node 20 or newer is fine). If you get
-   "command not found", restart your computer and try again — the
-   installer needs a fresh terminal session to update your PATH.
+IPM is a Jira/Linear-inspired system for planning and tracking work across
+projects: organize work into projects, break it into epics/sprints/tasks,
+assign responsibility, move work through a controlled workflow, and see
+where things stand at a glance. It was built to satisfy every requirement
+in the original project brief — including the explicitly optional ones —
+plus a handful of upgrades described below that go beyond what was asked.
 
-## 2. Install VS Code
+## ✨ Features
 
-1. Go to **https://code.visualstudio.com**
-2. Download and install for your OS.
-3. Open VS Code, go to the **Extensions** icon in the left sidebar
-   (or `Ctrl+Shift+X` / `Cmd+Shift+X`), and install:
-   - **ESLint** (by Microsoft)
-   - **Tailwind CSS IntelliSense** (by Tailwind Labs)
-   - **PostgreSQL** (by Chris Kolkman) — optional, lets you browse the
-     database from inside VS Code
+Organized by the same categories the original brief was written in, so
+each requirement traces directly to what's implemented.
 
-## 3. Install PostgreSQL
+### Project Management
+- Create, edit, and delete projects
+- Activate/deactivate projects (soft-disable rather than losing data)
+- Manage project membership and per-project roles
 
-1. Go to **https://www.postgresql.org/download/**
-2. Pick your OS and follow the installer.
-3. **Windows/Mac installer will ask you to set a password for the
-   `postgres` user — write this down, you'll need it in a moment.**
-4. Keep the default port (`5432`).
-5. Verify it worked — in a terminal:
-   ```
-   psql --version
-   ```
-   If `psql` isn't found on Windows, use the **SQL Shell (psql)** app
-   that the installer added to your Start Menu instead — it's the same
-   tool, just pre-configured.
-6. Create the database this project uses. Open `psql` (or the SQL Shell)
-   and run:
-   ```sql
-   CREATE DATABASE pms_db;
-   ```
-   Type `\q` to exit.
+### User & Access Management
+- Email/password registration and login (JWT-based sessions)
+- **Three-tier role system — Owner / Admin / Member** — per project, plus
+  a site-wide Admin/Member role for platform-level management
+- Activate/deactivate user accounts; a deactivated account is blocked at
+  login, not just hidden in a list
 
-## 4. Open the project in VS Code
+### Task Management
+- Full task CRUD: title, description, status, priority, due date
+- Assign tasks to any member of the task's project
+- Organize tasks under epics and sprints
+- Subtasks via a parent/child link on the task itself
 
-1. Unzip the file you downloaded from this chat.
-2. In VS Code: **File → Open Folder…** and select the unzipped
-   `pms-project` folder. You should see `backend/` and `frontend/` in
-   the sidebar.
-3. Open a terminal **inside VS Code**: **Terminal → New Terminal**. This
-   opens a terminal already pointed at the project — use this for every
-   command below instead of a separate terminal window.
+### Workflow Management
+- A defined task lifecycle (To Do → In Progress → Done)
+- Board view with per-status columns
+- Illegal state jumps (e.g. To Do straight to Done) are rejected by the
+  **backend itself** — not just prevented in the UI — via a dedicated
+  status-transition endpoint
 
-## 5. Configure and run the backend
+### Sprint / Iteration Planning
+- Create and manage sprints as time-bound cycles
+- Explicit Start/Complete actions (not a generic edit) that stamp the
+  real start and end dates
+- Only one active sprint per project at a time, enforced server-side
+- Sprint goals and per-sprint task assignment
 
-In the VS Code terminal:
+### Collaboration
+- Threaded comments on tasks, author + timestamp, chronological order
+- Watch/unwatch a task to track it without being assigned
+- Activity history generated automatically as a side effect of other
+  actions (status changes, assignment, comments) rather than logged by
+  hand from each feature
+
+### Time & Progress Tracking
+- Log hours against a task with a running total
+- Planned vs. actual progress at the sprint level
+
+### Dashboard & Visibility
+- Project overview, task distribution by status/assignee/priority
+- Sprint and project-level progress visualization
+- Wired to real aggregate queries — the numbers reflect actual data, not
+  a mock
+
+### Search & Filtering
+- Filter by status, assignee, priority, and sprint — individually or
+  combined
+- Keyword search across tasks
+
+### Insights & Analytics
+- Completed vs. pending tasks, workload distribution per person
+- Trends over time (weekly completion, sprint burndown)
+
+### Notifications
+- In-app notification on assignment and on status change
+- Bell icon with a dropdown and mark-as-read
+- Real-time delivery over WebSocket rather than polling
+
+## 🚀 Beyond the brief
+
+A few places this goes further than the original requirements asked for:
+
+- **Real hierarchy, not a flat role.** The brief suggested a simple
+  "e.g., Admin, Member" role. IPM implements a proper three-tier
+  Owner → Admin → Member chain of authority per project — an Owner can
+  manage Admins, an Admin can't touch another Admin or the Owner, and a
+  project can never be left without at least one Owner.
+- **RBAC enforced where it can't be bypassed.** Every permission check
+  lives in the backend service layer, keyed off the acting user's actual
+  rank on that specific project (with a site-admin override). The
+  frontend hides controls a user can't use as good UX, but hiding a
+  button is never the thing actually stopping the request — the API
+  rejects it either way, which was specifically verified by calling the
+  API directly rather than trusting the UI.
+- **Self-bootstrapping admin.** The very first account ever created on
+  the system automatically becomes a site admin, so there's always a way
+  to manage users without a manual database edit.
+- **Workflow enforcement at the data layer.** Status transitions go
+  through a dedicated endpoint that validates the move is legal, checked
+  by attempting an illegal transition directly against the API — not just
+  by confirming the UI doesn't offer the button.
+- **Two-tier design system.** A distinct dark, motion-accented look for
+  the sign-in experience and a clean, Jira-inspired white/light-blue
+  interior for the working app, sharing one typographic and color
+  language throughout rather than feeling like two different products
+  stitched together.
+- **Tested against a real backend, not mocks.** Frontend tests drive the
+  actual UI — typing into real fields, clicking real buttons — against a
+  live NestJS API and a live PostgreSQL database. A test passing means
+  the feature actually works end to end, not that a mock returned the
+  right shape.
+
+## 🛠 Tech Stack
+
+| | |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, React Router v7 |
+| **Backend** | NestJS 11, TypeORM, PostgreSQL 16 |
+| **Auth** | JWT (Passport), bcrypt password hashing |
+| **Validation** | class-validator / class-transformer |
+| **Data viz** | Recharts |
+| **Icons** | Lucide |
+| **Testing** | Vitest, React Testing Library, direct API integration tests |
+
+## 🔐 Roles & Permissions
+
+| Action | Member | Admin | Owner |
+|---|:---:|:---:|:---:|
+| View project, tasks, sprints, epics | ✅ | ✅ | ✅ |
+| Create / edit tasks, comments, time logs | ✅ | ✅ | ✅ |
+| Edit project details, activate/deactivate | ❌ | ✅ | ✅ |
+| Add/remove members, change **Member ↔ Admin** roles | ❌ | ✅ | ✅ |
+| Manage other Admins or Owners | ❌ | ❌ | ✅ |
+| Delete the project | ❌ | ❌ | ✅ |
+
+A site-wide Admin (the account that bootstrapped the system, or anyone
+promoted since) can manage any project regardless of their membership on
+it.
+
+## 🏁 Getting Started
+
+**Prerequisites:** Node.js (LTS), PostgreSQL, and a code editor.
 
 ```bash
+# 1. Backend
 cd backend
 npm install
-```
+cp .env.example .env      # fill in DB_PASSWORD and JWT_SECRET
+npm run start:dev         # http://localhost:3000
 
-This downloads all the packages the backend needs (~1-2 minutes).
-
-Now create your environment file:
-
-```bash
-cp .env.example .env
-```
-
-Open the new `.env` file in VS Code and fill in the two values that
-matter:
-
-- `DB_PASSWORD` — the postgres password you set in Step 3
-- `JWT_SECRET` — any long random string. You can generate one by
-  running this in the terminal and pasting the result in:
-  ```bash
-  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-  ```
-
-Start the backend:
-
-```bash
-npm run start:dev
-```
-
-You should see NestJS log lines ending in something like
-`Backend running on http://localhost:3000`. **Leave this terminal
-running** — this is your live server. TypeORM automatically creates the
-`users` table in `pms_db` the first time it connects, so there's nothing
-else to set up.
-
-**Quick sanity check** — open a *second* VS Code terminal
-(`Terminal → New Terminal`) and run:
-
-```bash
-curl -X POST http://localhost:3000/auth/register -H "Content-Type: application/json" -d "{\"email\":\"you@example.com\",\"password\":\"password123\",\"fullName\":\"Your Name\"}"
-```
-
-You should get back JSON with a `user` object and an `accessToken`. If
-you get "connection refused," the backend isn't running yet — check the
-first terminal for errors (almost always a wrong `DB_PASSWORD`).
-
-## 6. Configure and run the frontend
-
-Open a **third** terminal (keep the backend running in the first one):
-
-```bash
+# 2. Frontend (separate terminal)
 cd frontend
 npm install
 cp .env.example .env
-npm run dev
+npm run dev                # http://localhost:5173
 ```
 
-VS Code will show a link like `http://localhost:5173` — `Ctrl+Click`
-(Windows/Linux) or `Cmd+Click` (Mac) it to open the app in your browser.
-You should land on the login page with the split dark/light layout.
-Try creating an account — it's talking to your real backend and
-database right now.
+The database schema is created automatically on first connection — no
+manual migration step for local development.
 
-### Re-running the automated tests yourself
-
-With the backend running (Step 5), open another terminal:
+### Running the tests
 
 ```bash
-cd frontend
-npm run test
+# Backend: direct API tests against a live server
+cd backend && npm run start:dev &
+node test-projects.mjs && node test-rbac.mjs
+
+# Frontend: drives the real UI against the real backend
+cd frontend && npm run test
 ```
 
-This drives the real Login and Signup pages the same way a person
-would — typing into fields and clicking buttons — against your live
-backend, and reports pass/fail for each scenario.
-
----
-
-## Project structure
+## 📁 Project Structure
 
 ```
-pms-project/
-├── backend/                  NestJS API
+ipm/
+├── backend/
 │   └── src/
-│       ├── auth/             register / login / JWT / route guard
-│       ├── users/             User entity + database queries
-│       └── main.ts           app entry point
-└── frontend/                 React + Tailwind UI
+│       ├── auth/            registration, login, JWT strategy/guard
+│       ├── users/            user entity, site-admin management
+│       ├── projects/         projects, members, roles
+│       ├── epics/            epics
+│       ├── sprints/          sprints, start/complete actions
+│       ├── tasks/            tasks, subtasks, status workflow
+│       └── labels/           labels + task attachment
+└── frontend/
     └── src/
-        ├── pages/            Login.tsx, Signup.tsx, Dashboard.tsx
-        ├── context/          AuthContext.tsx - shared login state
-        ├── components/       AuthLayout, FormField, Button, route guards
-        ├── lib/api.ts        talks to the backend
-        └── test/             the 7 automated UI tests
+        ├── pages/            top-level routed pages
+        ├── components/       layout, shared UI, and per-feature components
+        ├── context/          auth state
+        ├── lib/               typed API clients
+        └── test/              integration test suites
 ```
 
-## What's already decided, and why
+## 🗺 What's next
 
-- **PostgreSQL, not SQLite** — matches the assignment's required stack
-  and the data model you already designed with your supervisor.
-- **JWT in `localStorage`** — simplest mental model for a first pass
-  (no cookie/CORS complexity). The tradeoff: a JWT in `localStorage` is
-  readable by any JS that runs on your page, so it's more exposed to XSS
-  than an httpOnly cookie. Fine for a course project; worth knowing if
-  this ever goes to production.
-- **Role and active/inactive status are on the User already** (defaulting
-  every signup to `member` / active) even though nothing in the UI
-  exposes them yet — the assignment's role-based access and
-  active/inactive-user features will need them, and adding a column
-  later means a migration instead of just building on what's there.
-- One dependency pin worth knowing about: this environment shipped with
-  TypeScript 7 by default, which NestJS's build tooling doesn't support
-  yet, so the backend pins `typescript@^6`. If a future `npm install`
-  ever pulls in TypeScript 7 again, `nest build` will fail with a clear
-  error telling you to reinstall `typescript@^6`.
-
-## Next features to build on this
-
-Project management, sprints, and tasks are the natural next slices —
-each one is a NestJS module (entity + service + controller) plus a
-React page, following the exact same pattern `auth/` and `Login.tsx`
-already establish.
+The dashboard's trend charts and real-time notifications are the newest
+pieces layered on top of the core system — natural next steps from here
+are richer reporting and mobile-friendly layouts.
