@@ -1,8 +1,8 @@
 <div align="center">
 
-# IPM — Intelligent Project Management System
+# Intelligent Project Management System
 
-**Plan sprints, assign work, and track progress as a team — a full-stack
+**Plan sprints, assign work, and track progress as a team  a full-stack
 project management platform built from the ground up.**
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
@@ -10,7 +10,7 @@ project management platform built from the ground up.**
 ![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)
-![Tested](https://img.shields.io/badge/tested-integration%20%2B%20API-1F9D7C)
+![Status](https://img.shields.io/badge/status-complete-1F9D7C)
 
 </div>
 
@@ -18,17 +18,17 @@ project management platform built from the ground up.**
 
 ## Overview
 
-IPM is a Jira/Linear-inspired system for planning and tracking work across
-projects: organize work into projects, break it into epics/sprints/tasks,
-assign responsibility, move work through a controlled workflow, and see
-where things stand at a glance. It was built to satisfy every requirement
-in the original project brief — including the explicitly optional ones —
-plus a handful of upgrades described below that go beyond what was asked.
+IPM is a Jira/Linear inspired system for planning and tracking work across
+projects: organize work into projects, break it into epics, sprints, and
+tasks, assign responsibility, move work through a controlled workflow, and
+see where things stand at a glance from a single dashboard down to a
+single task's activity history.
+
+Every requirement in the original project brief is implemented, including
+every item marked optional, plus a set of upgrades beyond what was asked
+for (see [Beyond the brief](#-beyond-the-brief)).
 
 ## ✨ Features
-
-Organized by the same categories the original brief was written in, so
-each requirement traces directly to what's implemented.
 
 ### Project Management
 - Create, edit, and delete projects
@@ -47,6 +47,10 @@ each requirement traces directly to what's implemented.
 - Assign tasks to any member of the task's project
 - Organize tasks under epics and sprints
 - Subtasks via a parent/child link on the task itself
+- Colored labels — create, attach/detach, shown as chips on every task
+  card and in the task detail sidebar
+- A dedicated task detail page: main content (title/description) plus a
+  sidebar for every structured field and an activity feed beneath it
 
 ### Workflow Management
 - A defined task lifecycle (To Do → In Progress → Done)
@@ -64,7 +68,10 @@ each requirement traces directly to what's implemented.
 
 ### Collaboration
 - Threaded comments on tasks, author + timestamp, chronological order
+- Link-based attachments (fileName + URL)
 - Watch/unwatch a task to track it without being assigned
+- Task dependencies — mark one task as blocking another; both tasks
+  reflect the relationship from a single write
 - Activity history generated automatically as a side effect of other
   actions (status changes, assignment, comments) rather than logged by
   hand from each feature
@@ -76,8 +83,7 @@ each requirement traces directly to what's implemented.
 ### Dashboard & Visibility
 - Project overview, task distribution by status/assignee/priority
 - Sprint and project-level progress visualization
-- Wired to real aggregate queries — the numbers reflect actual data, not
-  a mock
+- Wired to real aggregate queries — the numbers reflect actual data
 
 ### Search & Filtering
 - Filter by status, assignee, priority, and sprint — individually or
@@ -107,8 +113,8 @@ A few places this goes further than the original requirements asked for:
   rank on that specific project (with a site-admin override). The
   frontend hides controls a user can't use as good UX, but hiding a
   button is never the thing actually stopping the request — the API
-  rejects it either way, which was specifically verified by calling the
-  API directly rather than trusting the UI.
+  rejects it either way, verified by calling the API directly rather
+  than trusting the UI.
 - **Self-bootstrapping admin.** The very first account ever created on
   the system automatically becomes a site admin, so there's always a way
   to manage users without a manual database edit.
@@ -124,27 +130,14 @@ A few places this goes further than the original requirements asked for:
 - **Tested against a real backend, not mocks.** Frontend tests drive the
   actual UI — typing into real fields, clicking real buttons — against a
   live NestJS API and a live PostgreSQL database. A test passing means
-  the feature actually works end to end, not that a mock returned the
-  right shape.
-
-## 🛠 Tech Stack
-
-| | |
-|---|---|
-| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, React Router v7 |
-| **Backend** | NestJS 11, TypeORM, PostgreSQL 16 |
-| **Auth** | JWT (Passport), bcrypt password hashing |
-| **Validation** | class-validator / class-transformer |
-| **Data viz** | Recharts |
-| **Icons** | Lucide |
-| **Testing** | Vitest, React Testing Library, direct API integration tests |
+  the feature actually works end to end.
 
 ## 🔐 Roles & Permissions
 
 | Action | Member | Admin | Owner |
 |---|:---:|:---:|:---:|
 | View project, tasks, sprints, epics | ✅ | ✅ | ✅ |
-| Create / edit tasks, comments, time logs | ✅ | ✅ | ✅ |
+| Create/edit tasks, comments, time logs, labels | ✅ | ✅ | ✅ |
 | Edit project details, activate/deactivate | ❌ | ✅ | ✅ |
 | Add/remove members, change **Member ↔ Admin** roles | ❌ | ✅ | ✅ |
 | Manage other Admins or Owners | ❌ | ❌ | ✅ |
@@ -153,6 +146,19 @@ A few places this goes further than the original requirements asked for:
 A site-wide Admin (the account that bootstrapped the system, or anyone
 promoted since) can manage any project regardless of their membership on
 it.
+
+## 🛠 Tech Stack
+
+| | |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, React Router v7 |
+| **Backend** | NestJS 11, TypeORM, PostgreSQL 16 |
+| **Real-time** | WebSocket (notifications) |
+| **Auth** | JWT (Passport), bcrypt password hashing |
+| **Validation** | class-validator / class-transformer |
+| **Data viz** | Recharts |
+| **Icons** | Lucide |
+| **Testing** | Vitest, React Testing Library, direct API integration tests |
 
 ## 🏁 Getting Started
 
@@ -197,8 +203,14 @@ ipm/
 │       ├── projects/         projects, members, roles
 │       ├── epics/            epics
 │       ├── sprints/          sprints, start/complete actions
-│       ├── tasks/            tasks, subtasks, status workflow
-│       └── labels/           labels + task attachment
+│       ├── tasks/            tasks, subtasks, status workflow, dependencies
+│       ├── labels/            labels + task attachment
+│       ├── comments/         task comments
+│       ├── attachments/       link-based task attachments
+│       ├── watchers/          task watch/unwatch
+│       ├── time-logs/         time tracking per task
+│       ├── activity/          auto-generated activity log
+│       └── notifications/     assignment/status notifications, WebSocket gateway
 └── frontend/
     └── src/
         ├── pages/            top-level routed pages
@@ -208,8 +220,3 @@ ipm/
         └── test/              integration test suites
 ```
 
-## 🗺 What's next
-
-The dashboard's trend charts and real-time notifications are the newest
-pieces layered on top of the core system — natural next steps from here
-are richer reporting and mobile-friendly layouts.
