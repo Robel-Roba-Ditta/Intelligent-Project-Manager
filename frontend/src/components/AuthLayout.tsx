@@ -63,7 +63,7 @@ export function AuthLayout({
       <div className="hidden flex-col justify-between bg-ink px-14 py-12 lg:flex">
         <div className="flex items-center gap-2">
           <img
-            src="/Gemini_Generated_Image_luqy9luqy9luqy9l.png"
+            src="/IPM-Logo.png"
             alt="IPM logo"
             className="h-8 w-8 rounded object-cover"
           />
@@ -90,7 +90,7 @@ export function AuthLayout({
       <div className="flex flex-col items-center justify-center bg-paper px-6 py-12">
         <div className="mb-8 flex items-center gap-2 lg:hidden">
           <img
-            src="/Gemini_Generated_Image_luqy9luqy9luqy9l.png"
+            src="/IPM-Logo.png"
             alt="IPM logo"
             className="h-8 w-8 rounded object-cover"
           />

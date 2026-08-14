@@ -13,7 +13,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border-app bg-surface md:flex">
       <div className="flex h-16 items-center gap-2 px-6">
-        <img src="/Gemini_Generated_Image_luqy9luqy9luqy9l.png" alt="IPM logo" className="h-8 w-8 rounded object-cover" />
+        <img src="/IPM-Logo.png" alt="IPM logo" className="h-8 w-8 rounded object-cover" />
         <span className="font-display text-lg font-semibold text-ink">IPM</span>
       </div>
 
