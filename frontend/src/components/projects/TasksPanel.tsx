@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { AlertCircle, Plus, Trash2, X, ChevronRight, Tag } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertCircle, Plus, Trash2, X, ChevronRight, Tag, List, LayoutGrid, Search, Filter } from 'lucide-react';
 import {
   listTasks,
   createTask,
@@ -8,6 +9,7 @@ import {
   type TaskStatus,
   type TaskPriority,
   type TaskType,
+  type TaskFilters,
 } from '../../lib/tasksApi';
 import { listEpics, type EpicDto } from '../../lib/epicsApi';
 import { listSprints, type SprintDto } from '../../lib/sprintsApi';
@@ -22,6 +24,7 @@ import {
 } from '../../lib/labelsApi';
 import { extractErrorMessage } from '../../lib/api';
 import { getInitials, avatarColorForName } from '../../lib/utils';
+import { BoardView } from './BoardView';
 
 const STATUS_CONFIG: Record<TaskStatus, { label: string; dot: string }> = {
   TODO: { label: 'To Do', dot: 'bg-slate-400' },
@@ -52,6 +55,9 @@ export function TasksPanel({ projectId }: { projectId: number }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // View mode
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
+
   // Label management state
   const [showLabelManager, setShowLabelManager] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
@@ -70,11 +76,27 @@ export function TasksPanel({ projectId }: { projectId: number }) {
   const [assigneeId, setAssigneeId] = useState('');
   const [parentTaskId, setParentTaskId] = useState('');
 
+  // Filters
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
+  const [filterAssignee, setFilterAssignee] = useState('');
+  const [filterSprint, setFilterSprint] = useState('');
+  const [filterSearch, setFilterSearch] = useState('');
+
+  const activeFilterCount = [filterStatus, filterPriority, filterAssignee, filterSprint, filterSearch].filter(Boolean).length;
+
   async function load() {
     try {
       setError(null);
+      const filters: TaskFilters = {};
+      if (filterStatus) filters.status = filterStatus;
+      if (filterPriority) filters.priority = filterPriority;
+      if (filterAssignee) filters.assigneeId = Number(filterAssignee);
+      if (filterSprint) filters.sprintId = Number(filterSprint);
+      if (filterSearch) filters.search = filterSearch;
+
       const [t, e, s, m, l] = await Promise.all([
-        listTasks(projectId),
+        listTasks(projectId, Object.keys(filters).length > 0 ? filters : undefined),
         listEpics(projectId),
         listSprints(projectId),
         listProjectMembers(projectId),
@@ -92,7 +114,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
 
   useEffect(() => {
     load();
-  }, [projectId]);
+  }, [projectId, filterStatus, filterPriority, filterAssignee, filterSprint, filterSearch]);
 
   function resetForm() {
     setTitle('');
@@ -228,6 +250,83 @@ export function TasksPanel({ projectId }: { projectId: number }) {
             New Task
           </button>
         )}
+      </div>
+
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border-app bg-surface px-4 py-3">
+        <div className="flex items-center gap-2 rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-sm">
+          <Search size={14} className="text-muted" />
+          <input
+            type="text"
+            value={filterSearch}
+            onChange={(e) => setFilterSearch(e.target.value)}
+            placeholder="Search tasks…"
+            aria-label="Search tasks"
+            className="w-28 bg-transparent text-xs text-ink placeholder:text-muted/60 focus:outline-none sm:w-40"
+          />
+        </div>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+          <option value="">All statuses</option>
+          <option value="TODO">To Do</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="IN_REVIEW">In Review</option>
+          <option value="DONE">Done</option>
+        </select>
+        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} aria-label="Filter by priority" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+          <option value="">All priorities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="URGENT">Urgent</option>
+        </select>
+        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} aria-label="Filter by assignee" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+          <option value="">All assignees</option>
+          {members.map((m) => <option key={m.userId} value={m.userId}>{m.user.fullName}</option>)}
+        </select>
+        <select value={filterSprint} onChange={(e) => setFilterSprint(e.target.value)} aria-label="Filter by sprint" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+          <option value="">All sprints</option>
+          {sprints.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        {activeFilterCount > 0 && (
+          <>
+            <span className="flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">
+              <Filter size={10} />
+              {activeFilterCount} active
+            </span>
+            <button
+              type="button"
+              onClick={() => { setFilterStatus(''); setFilterPriority(''); setFilterAssignee(''); setFilterSprint(''); setFilterSearch(''); }}
+              className="text-xs text-muted hover:text-ink"
+              aria-label="Clear all filters"
+            >
+              Clear filters
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* View mode toggle */}
+      <div className="flex items-center gap-1 rounded-lg border border-border-app p-0.5">
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            viewMode === 'list' ? 'bg-brand text-white' : 'text-muted hover:text-ink'
+          }`}
+        >
+          <List size={13} />
+          List
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode('board')}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            viewMode === 'board' ? 'bg-brand text-white' : 'text-muted hover:text-ink'
+          }`}
+        >
+          <LayoutGrid size={13} />
+          Board
+        </button>
       </div>
 
       {/* Error */}
@@ -421,19 +520,28 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
+      {/* Board view */}
+      {viewMode === 'board' && (
+        <BoardView projectId={projectId} />
+      )}
+
       {/* Tasks list */}
-      {tasks.length === 0 && !showForm ? (
-        <div className="rounded-xl border border-dashed border-border-app py-10 text-center">
-          <p className="text-sm text-muted">No tasks yet. Create one to get started.</p>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border-app bg-surface">
-          <ul className="divide-y divide-border-app">
-            {topLevelTasks.map((task) => (
-              <TaskRow key={task.id} task={task} allTasks={tasks} allLabels={labels} onDelete={handleDelete} onAttachLabel={handleAttachLabel} onDetachLabel={handleDetachLabel} busy={busy} depth={0} />
-            ))}
-          </ul>
-        </div>
+      {viewMode === 'list' && (
+        <>
+          {tasks.length === 0 && !showForm ? (
+            <div className="rounded-xl border border-dashed border-border-app py-10 text-center">
+              <p className="text-sm text-muted">No tasks yet. Create one to get started.</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border-app bg-surface">
+              <ul className="divide-y divide-border-app">
+                {topLevelTasks.map((task) => (
+                  <TaskRow key={task.id} task={task} allTasks={tasks} allLabels={labels} onDelete={handleDelete} onAttachLabel={handleAttachLabel} onDetachLabel={handleDetachLabel} busy={busy} depth={0} />
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -477,7 +585,7 @@ function TaskRow({
         )}
         <span className={`h-2 w-2 shrink-0 rounded-full ${sc.dot}`} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-ink">{task.title}</p>
+          <Link to={`/tasks/${task.id}`} className="block truncate text-sm font-medium text-ink hover:text-brand">{task.title}</Link>
           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted">
             <span className={tc.color}>{tc.label}</span>
             {task.assignee && (

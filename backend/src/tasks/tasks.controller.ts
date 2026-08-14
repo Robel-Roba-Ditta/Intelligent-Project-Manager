@@ -46,6 +46,7 @@ export class TasksController {
     @Query('epicId') epicId?: string,
     @Query('status') status?: string,
     @Query('priority') priority?: string,
+    @Query('search') search?: string,
   ) {
     return this.tasksService.findAllByProject(projectId, user.sub, {
       assigneeId: assigneeId ? Number(assigneeId) : undefined,
@@ -53,6 +54,7 @@ export class TasksController {
       epicId: epicId ? Number(epicId) : undefined,
       status,
       priority,
+      search,
     });
   }
 

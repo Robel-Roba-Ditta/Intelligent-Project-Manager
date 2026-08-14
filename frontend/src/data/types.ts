@@ -61,7 +61,7 @@ export interface WeeklyTrendPoint {
 
 export interface DashboardData {
   stats: DashboardStats;
-  sprint: Sprint;
+  sprint: Sprint | null;
   tasksByStatus: Record<TaskStatus, number>;
   weeklyTrend: WeeklyTrendPoint[];
   myTasks: Task[];

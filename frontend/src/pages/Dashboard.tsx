@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { FolderKanban, ListChecks, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AppShell } from '../components/layout/AppShell';
@@ -9,14 +10,56 @@ import { MyTasksList } from '../components/dashboard/MyTasksList';
 import { TeamWorkloadList } from '../components/dashboard/TeamWorkloadList';
 import { ProjectsOverview } from '../components/dashboard/ProjectsOverview';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
-import { getDashboardData } from '../data/mockDashboard';
+import { api } from '../lib/api';
+import type { DashboardData } from '../data/types';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<DashboardData>('/dashboard');
+        if (!cancelled) setData(res.data);
+      } catch {
+        // Dashboard is best-effort
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   if (!user) return null;
 
-  const data = getDashboardData(user.fullName);
   const firstName = user.fullName.split(' ')[0];
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="flex h-40 items-center justify-center">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-border-app border-t-brand" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!data) {
+    return (
+      <AppShell>
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-semibold text-ink">
+            Welcome back, {firstName}.
+          </h1>
+          <p className="text-sm text-muted">Could not load dashboard data.</p>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -42,7 +85,13 @@ export function Dashboard() {
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <SprintProgressCard sprint={data.sprint} />
+          {data.sprint ? (
+            <SprintProgressCard sprint={data.sprint} />
+          ) : (
+            <div className="rounded-xl border border-border-app bg-surface p-5">
+              <p className="text-sm text-muted">No active sprint.</p>
+            </div>
+          )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <StatusDistributionChart tasksByStatus={data.tasksByStatus} />
             <WeeklyTrendChart data={data.weeklyTrend} />

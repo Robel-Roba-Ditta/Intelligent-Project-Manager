@@ -61,8 +61,23 @@ export interface UpdateTaskData {
   parentTaskId?: number | null;
 }
 
-export async function listTasks(projectId: number): Promise<TaskDto[]> {
-  const res = await api.get<TaskDto[]>(`/projects/${projectId}/tasks`);
+export interface TaskFilters {
+  status?: string;
+  priority?: string;
+  assigneeId?: number;
+  sprintId?: number;
+  search?: string;
+}
+
+export async function listTasks(projectId: number, filters?: TaskFilters): Promise<TaskDto[]> {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.priority) params.set('priority', filters.priority);
+  if (filters?.assigneeId) params.set('assigneeId', String(filters.assigneeId));
+  if (filters?.sprintId) params.set('sprintId', String(filters.sprintId));
+  if (filters?.search) params.set('search', filters.search);
+  const qs = params.toString();
+  const res = await api.get<TaskDto[]>(`/projects/${projectId}/tasks${qs ? '?' + qs : ''}`);
   return res.data;
 }
 

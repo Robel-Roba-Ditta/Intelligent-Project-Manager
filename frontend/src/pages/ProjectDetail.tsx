@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Settings, Users, Layers, Timer, CheckSquare, LayoutGrid, Power, Trash2 } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Settings, Users, Layers, Timer, CheckSquare, Power, Trash2 } from 'lucide-react';
 import { AppShell } from '../components/layout/AppShell';
 import { MembersPanel } from '../components/projects/MembersPanel';
 import { EpicsPanel } from '../components/projects/EpicsPanel';
 import { SprintsPanel } from '../components/projects/SprintsPanel';
 import { TasksPanel } from '../components/projects/TasksPanel';
-import { BoardView } from '../components/projects/BoardView';
 import { ProjectFormModal } from '../components/projects/ProjectFormModal';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -20,7 +19,7 @@ import { extractErrorMessage } from '../lib/api';
 import { formatRelativeTime, getInitials, avatarColorForName } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
-type Tab = 'overview' | 'members' | 'epics' | 'sprints' | 'tasks' | 'board';
+type Tab = 'overview' | 'members' | 'epics' | 'sprints' | 'tasks';
 
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -195,7 +194,6 @@ export function ProjectDetail() {
               { key: 'epics' as Tab, label: 'Epics', icon: Layers },
               { key: 'sprints' as Tab, label: 'Sprints', icon: Timer },
               { key: 'tasks' as Tab, label: 'Tasks', icon: CheckSquare },
-              { key: 'board' as Tab, label: 'Board', icon: LayoutGrid },
             ]).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -290,10 +288,6 @@ export function ProjectDetail() {
 
           {activeTab === 'tasks' && (
             <TasksPanel projectId={project.id} />
-          )}
-
-          {activeTab === 'board' && (
-            <BoardView projectId={project.id} />
           )}
 
           <ProjectFormModal

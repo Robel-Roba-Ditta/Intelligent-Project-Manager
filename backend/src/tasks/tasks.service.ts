@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Task, TaskStatus } from './entities/task.entity';
 import { Epic } from '../epics/entities/epic.entity';
 import { Sprint } from '../sprints/entities/sprint.entity';
@@ -15,6 +16,7 @@ import { ProjectsService } from '../projects/projects.service';
 import { UsersService } from '../users/users.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { TaskStatusChangedEvent, TaskAssigneeChangedEvent } from '../activity/events';
 
 const TASK_RELATIONS = {
   project: true,
@@ -40,6 +42,7 @@ export class TasksService {
     private readonly membersRepository: Repository<ProjectMember>,
     private readonly projectsService: ProjectsService,
     private readonly usersService: UsersService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async assertMember(projectId: number, userId: number) {
@@ -150,22 +153,39 @@ export class TasksService {
       epicId?: number;
       status?: string;
       priority?: string;
+      search?: string;
     },
   ): Promise<Task[]> {
     await this.assertMember(projectId, userId);
 
-    const where: any = { projectId, isDeleted: false };
-    if (filters?.assigneeId) where.assigneeId = filters.assigneeId;
-    if (filters?.sprintId) where.sprintId = filters.sprintId;
-    if (filters?.epicId) where.epicId = filters.epicId;
-    if (filters?.status) where.status = filters.status;
-    if (filters?.priority) where.priority = filters.priority;
+    const qb = this.tasksRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.project', 'project')
+      .leftJoinAndSelect('task.epic', 'epic')
+      .leftJoinAndSelect('task.sprint', 'sprint')
+      .leftJoinAndSelect('task.assignee', 'assignee')
+      .leftJoinAndSelect('task.parent', 'parent')
+      .leftJoinAndSelect('task.children', 'children')
+      .leftJoinAndSelect('task.labels', 'labels')
+      .leftJoinAndSelect('task.createdBy', 'createdBy')
+      .where('task.projectId = :projectId', { projectId })
+      .andWhere('task.isDeleted = false');
 
-    return this.tasksRepository.find({
-      where,
-      relations: TASK_RELATIONS,
-      order: { createdAt: 'DESC' },
-    });
+    if (filters?.assigneeId) qb.andWhere('task.assigneeId = :assigneeId', { assigneeId: filters.assigneeId });
+    if (filters?.sprintId) qb.andWhere('task.sprintId = :sprintId', { sprintId: filters.sprintId });
+    if (filters?.epicId) qb.andWhere('task.epicId = :epicId', { epicId: filters.epicId });
+    if (filters?.status) qb.andWhere('task.status = :status', { status: filters.status });
+    if (filters?.priority) qb.andWhere('task.priority = :priority', { priority: filters.priority });
+    if (filters?.search) {
+      qb.andWhere(
+        '(task.title ILIKE :search OR task.description ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    qb.orderBy('task.createdAt', 'DESC');
+
+    return qb.getMany();
   }
 
   async findAllForUser(userId: number): Promise<Task[]> {
@@ -195,6 +215,9 @@ export class TasksService {
       dto.sprintId !== undefined ? dto.sprintId : undefined,
     );
 
+    // Track assignee change for activity event
+    const oldAssigneeId = task.assigneeId;
+
     if (dto.title !== undefined) task.title = dto.title;
     if (dto.description !== undefined) task.description = dto.description ?? null;
     if (dto.priority !== undefined) task.priority = dto.priority;
@@ -208,6 +231,15 @@ export class TasksService {
     if (dto.parentTaskId !== undefined) { task.parentTaskId = dto.parentTaskId; task.parent = undefined as any; }
 
     await this.tasksRepository.save(task);
+
+    // Emit assignee change event if it actually changed
+    if (dto.assigneeId !== undefined && dto.assigneeId !== oldAssigneeId) {
+      this.eventEmitter.emit(
+        'task.assignee_changed',
+        new TaskAssigneeChangedEvent(id, userId, oldAssigneeId, dto.assigneeId),
+      );
+    }
+
     return this.findOne(id);
   }
 
@@ -262,6 +294,7 @@ export class TasksService {
       );
     }
 
+    const fromStatus = task.status;
     task.status = newStatus;
 
     // Stamp or clear completedAt
@@ -272,6 +305,13 @@ export class TasksService {
     }
 
     await this.tasksRepository.save(task);
+
+    // Emit status change event (activity listener writes the log)
+    this.eventEmitter.emit(
+      'task.status_changed',
+      new TaskStatusChangedEvent(id, userId, fromStatus, newStatus),
+    );
+
     return this.findOne(id);
   }
 }
