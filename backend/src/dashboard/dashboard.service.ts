@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Not, LessThan } from 'typeorm';
 import { Project } from '../projects/entities/project.entity';
 import { ProjectMember } from '../projects/entities/project-member.entity';
-import { Task, TaskStatus } from '../tasks/entities/task.entity';
+import { Task, TaskStatus, TaskPriority } from '../tasks/entities/task.entity';
 import { Sprint, SprintStatus } from '../sprints/entities/sprint.entity';
 import { ActivityLog } from '../activity/entities/activity-log.entity';
 
@@ -71,18 +71,16 @@ export class DashboardService {
     if (activeSprints.length > 0) {
       const s = activeSprints[0];
       const sprintTasks = allTasks.filter((t) => t.sprintId === s.id);
-      const plannedPoints = sprintTasks.reduce((sum, t) => sum + (t.storyPoints || 0), 0);
-      const completedPoints = sprintTasks
-        .filter((t) => t.status === TaskStatus.DONE)
-        .reduce((sum, t) => sum + (t.storyPoints || 0), 0);
+      const totalTasks = sprintTasks.length;
+      const completedTasks = sprintTasks.filter((t) => t.status === TaskStatus.DONE).length;
       sprint = {
         id: String(s.id),
         name: s.name,
         goal: s.goal || '',
         startDate: s.startDate ? s.startDate.toISOString().split('T')[0] : '',
         endDate: s.endDate ? s.endDate.toISOString().split('T')[0] : '',
-        plannedPoints,
-        completedPoints,
+        totalTasks,
+        completedTasks,
       };
     }
 
@@ -92,6 +90,16 @@ export class DashboardService {
       if (t.status === TaskStatus.TODO) tasksByStatus.todo++;
       else if (t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.IN_REVIEW) tasksByStatus.in_progress++;
       else if (t.status === TaskStatus.DONE) tasksByStatus.done++;
+    }
+
+    // 6b. tasksByPriority
+    const tasksByPriority = { low: 0, medium: 0, high: 0, urgent: 0 };
+    for (const t of allTasks) {
+      const p = t.priority?.toLowerCase();
+      if (p === 'low') tasksByPriority.low++;
+      else if (p === 'medium') tasksByPriority.medium++;
+      else if (p === 'high') tasksByPriority.high++;
+      else if (p === 'urgent') tasksByPriority.urgent++;
     }
 
     // 7. weeklyTrend — last 7 days from ActivityLog
@@ -156,6 +164,7 @@ export class DashboardService {
       },
       sprint,
       tasksByStatus,
+      tasksByPriority,
       weeklyTrend,
       myTasks,
       teamWorkload,
@@ -249,6 +258,7 @@ export class DashboardService {
       stats: { activeProjects: 0, openTasks: 0, completedThisSprint: 0, overdueTasks: 0 },
       sprint: null,
       tasksByStatus: { todo: 0, in_progress: 0, done: 0 },
+      tasksByPriority: { low: 0, medium: 0, high: 0, urgent: 0 },
       weeklyTrend: this.emptyWeeklyTrend(),
       myTasks: [],
       teamWorkload: [],

@@ -29,8 +29,8 @@ export interface Sprint {
   goal: string;
   startDate: string;
   endDate: string;
-  plannedPoints: number;
-  completedPoints: number;
+  totalTasks: number;
+  completedTasks: number;
 }
 
 export interface TeamWorkload {
@@ -63,6 +63,7 @@ export interface DashboardData {
   stats: DashboardStats;
   sprint: Sprint | null;
   tasksByStatus: Record<TaskStatus, number>;
+  tasksByPriority: Record<TaskPriority, number>;
   weeklyTrend: WeeklyTrendPoint[];
   myTasks: Task[];
   teamWorkload: TeamWorkload[];

@@ -16,7 +16,7 @@ function daysRemaining(endIso: string): number {
 }
 
 export function SprintProgressCard({ sprint }: { sprint: Sprint }) {
-  const percent = Math.round((sprint.completedPoints / sprint.plannedPoints) * 100);
+  const percent = sprint.totalTasks > 0 ? Math.round((sprint.completedTasks / sprint.totalTasks) * 100) : 0;
   const remaining = daysRemaining(sprint.endDate);
 
   return (
@@ -39,8 +39,8 @@ export function SprintProgressCard({ sprint }: { sprint: Sprint }) {
       <div className="mt-4">
         <div className="flex items-baseline justify-between text-sm">
           <span className="font-medium text-ink">
-            {sprint.completedPoints}
-            <span className="text-muted"> / {sprint.plannedPoints} points</span>
+            {sprint.completedTasks}
+            <span className="text-muted"> / {sprint.totalTasks} tasks</span>
           </span>
           <span className="text-muted">{remaining} days left</span>
         </div>

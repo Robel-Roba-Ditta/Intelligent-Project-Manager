@@ -31,6 +31,7 @@ import { TaskDependency } from './dependencies/entities/task-dependency.entity';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { Notification } from './notifications/entities/notification.entity';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { Notification } from './notifications/entities/notification.entity';
     DependenciesModule,
     DashboardModule,
     NotificationsModule,
+    SearchModule,
   ],
 })
 export class AppModule { }

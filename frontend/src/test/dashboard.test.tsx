@@ -113,4 +113,27 @@ describe('Dashboard', () => {
     expect(proj.totalTasks).toBeGreaterThanOrEqual(6);
     expect(proj.completedTasks).toBeGreaterThanOrEqual(1);
   });
+
+  it('tasksByPriority matches seeded priority distribution', async () => {
+    setToken(token1);
+    const { data } = await api.get('/dashboard');
+    // Seeded: 2 LOW (DT1, DT6), 2 MEDIUM (DT2, DT5), 2 HIGH (DT3, DT4), 0 URGENT
+    expect(data.tasksByPriority).toBeDefined();
+    expect(data.tasksByPriority.low).toBeGreaterThanOrEqual(2);
+    expect(data.tasksByPriority.medium).toBeGreaterThanOrEqual(2);
+    expect(data.tasksByPriority.high).toBeGreaterThanOrEqual(2);
+    expect(typeof data.tasksByPriority.urgent).toBe('number');
+  });
+
+  it('sprint uses totalTasks/completedTasks (not plannedPoints/completedPoints)', async () => {
+    setToken(token1);
+    const { data } = await api.get('/dashboard');
+    // sprint may or may not exist depending on whether an active sprint is seeded
+    if (data.sprint) {
+      expect(typeof data.sprint.totalTasks).toBe('number');
+      expect(typeof data.sprint.completedTasks).toBe('number');
+      expect(data.sprint.plannedPoints).toBeUndefined();
+      expect(data.sprint.completedPoints).toBeUndefined();
+    }
+  });
 });

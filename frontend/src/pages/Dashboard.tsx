@@ -5,6 +5,7 @@ import { AppShell } from '../components/layout/AppShell';
 import { StatCard } from '../components/dashboard/StatCard';
 import { SprintProgressCard } from '../components/dashboard/SprintProgressCard';
 import { StatusDistributionChart } from '../components/dashboard/StatusDistributionChart';
+import { PriorityDistributionChart } from '../components/dashboard/PriorityDistributionChart';
 import { WeeklyTrendChart } from '../components/dashboard/WeeklyTrendChart';
 import { MyTasksList } from '../components/dashboard/MyTasksList';
 import { TeamWorkloadList } from '../components/dashboard/TeamWorkloadList';
@@ -92,8 +93,9 @@ export function Dashboard() {
               <p className="text-sm text-muted">No active sprint.</p>
             </div>
           )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <StatusDistributionChart tasksByStatus={data.tasksByStatus} />
+            <PriorityDistributionChart tasksByPriority={data.tasksByPriority} />
             <WeeklyTrendChart data={data.weeklyTrend} />
           </div>
           <MyTasksList tasks={data.myTasks} />
