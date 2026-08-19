@@ -5,6 +5,7 @@ import { formatDueDate } from '../../lib/utils';
 const STATUS_STYLE: Record<TaskStatus, { label: string; className: string }> = {
   todo: { label: 'To Do', className: 'bg-canvas text-muted' },
   in_progress: { label: 'In Progress', className: 'bg-accent-progress/10 text-accent-progress' },
+  in_review: { label: 'In Review', className: 'bg-indigo-100 text-indigo-600' },
   done: { label: 'Done', className: 'bg-accent-done/10 text-accent-done-dim' },
 };
 

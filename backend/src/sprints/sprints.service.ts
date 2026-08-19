@@ -7,6 +7,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Sprint, SprintStatus } from './entities/sprint.entity';
+import { Task } from '../tasks/entities/task.entity';
+import { ActivityLog } from '../activity/entities/activity-log.entity';
 import { ProjectsService } from '../projects/projects.service';
 import { CreateSprintDto } from './dto/create-sprint.dto';
 import { UpdateSprintDto } from './dto/update-sprint.dto';
@@ -16,6 +18,10 @@ export class SprintsService {
   constructor(
     @InjectRepository(Sprint)
     private readonly sprintsRepository: Repository<Sprint>,
+    @InjectRepository(Task)
+    private readonly tasksRepository: Repository<Task>,
+    @InjectRepository(ActivityLog)
+    private readonly activityRepository: Repository<ActivityLog>,
     private readonly projectsService: ProjectsService,
   ) {}
 
@@ -135,5 +141,85 @@ export class SprintsService {
     sprint.endDate = new Date();
     await this.sprintsRepository.save(sprint);
     return this.findOne(id);
+  }
+
+  // ─── Burndown Chart ────────────────────────────────────────
+
+  async getBurndown(id: number) {
+    const sprint = await this.findOne(id);
+
+    if (!sprint.startDate) {
+      throw new BadRequestException('Sprint has not been started yet');
+    }
+
+    const totalTasks = await this.tasksRepository.count({
+      where: { sprintId: id, isDeleted: false },
+    });
+
+    const startDate = new Date(sprint.startDate);
+    // For active sprints use today, for completed use endDate
+    const endDate = sprint.endDate ? new Date(sprint.endDate) : new Date();
+    const lastDay = sprint.endDate ? endDate : new Date(); // cap at today for active
+
+    // Get all status_changed events to DONE for tasks in this sprint
+    const doneEvents = await this.activityRepository
+      .createQueryBuilder('al')
+      .innerJoin('al.task', 'task')
+      .where('task.sprintId = :sprintId', { sprintId: id })
+      .andWhere('task.isDeleted = false')
+      .andWhere('al.action = :action', { action: 'status_changed' })
+      .andWhere("al.details->>'toStatus' = :toStatus", { toStatus: 'DONE' })
+      .select(['al.createdAt'])
+      .orderBy('al.createdAt', 'ASC')
+      .getMany();
+
+    // Build a map of date -> cumulative completions
+    const completionsByDate = new Map<string, number>();
+    for (const event of doneEvents) {
+      const dateKey = new Date(event.createdAt).toISOString().split('T')[0];
+      completionsByDate.set(dateKey, (completionsByDate.get(dateKey) || 0) + 1);
+    }
+
+    // Calculate total sprint duration in days for ideal line
+    const sprintEndForIdeal = sprint.endDate ? new Date(sprint.endDate) : endDate;
+    const totalDays = Math.max(
+      1,
+      Math.ceil((sprintEndForIdeal.getTime() - startDate.getTime()) / 86_400_000),
+    );
+
+    // Build day-by-day data
+    const days: { date: string; idealRemaining: number; actualRemaining: number }[] = [];
+    let cumulativeCompleted = 0;
+
+    const current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const lastDayNorm = new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate());
+    let dayIndex = 0;
+
+    while (current <= lastDayNorm) {
+      const dateKey = current.toISOString().split('T')[0];
+      cumulativeCompleted += completionsByDate.get(dateKey) || 0;
+
+      const idealRemaining = Math.max(
+        0,
+        Number((totalTasks - (totalTasks * dayIndex) / totalDays).toFixed(1)),
+      );
+
+      days.push({
+        date: dateKey,
+        idealRemaining,
+        actualRemaining: totalTasks - cumulativeCompleted,
+      });
+
+      current.setDate(current.getDate() + 1);
+      dayIndex++;
+    }
+
+    return {
+      sprintName: sprint.name,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: sprintEndForIdeal.toISOString().split('T')[0],
+      totalTasks,
+      days,
+    };
   }
 }

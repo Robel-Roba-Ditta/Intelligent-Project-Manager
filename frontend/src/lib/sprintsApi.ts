@@ -59,3 +59,22 @@ export async function completeSprint(id: number): Promise<SprintDto> {
   const res = await api.post<SprintDto>(`/sprints/${id}/complete`);
   return res.data;
 }
+
+export interface BurndownDay {
+  date: string;
+  idealRemaining: number;
+  actualRemaining: number;
+}
+
+export interface BurndownData {
+  sprintName: string;
+  startDate: string;
+  endDate: string;
+  totalTasks: number;
+  days: BurndownDay[];
+}
+
+export async function getSprintBurndown(id: number): Promise<BurndownData> {
+  const res = await api.get<BurndownData>(`/sprints/${id}/burndown`);
+  return res.data;
+}

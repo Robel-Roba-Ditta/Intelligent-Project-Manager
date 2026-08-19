@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, LogOut, ChevronDown, CheckCheck, FolderKanban, ListChecks } from 'lucide-react';
+import { io, type Socket } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
 import { getInitials, avatarColorForName } from '../../lib/utils';
 import { formatRelativeTime } from '../../lib/utils';
@@ -38,6 +39,7 @@ export function Topbar() {
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -49,12 +51,32 @@ export function Topbar() {
     }
   }, []);
 
+  // Initial fetch + WebSocket real-time push
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Poll every 30s
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+
+      // Connect WebSocket
+      const token = localStorage.getItem('token');
+      if (token) {
+        const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+        const socket = io(baseUrl, {
+          auth: { token },
+          transports: ['websocket', 'polling'],
+        });
+
+        socket.on('notification', (notif: NotificationDto) => {
+          setNotifications((prev) => [notif, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        });
+
+        socketRef.current = socket;
+      }
+
+      return () => {
+        socketRef.current?.disconnect();
+        socketRef.current = null;
+      };
     }
   }, [user, fetchNotifications]);
 

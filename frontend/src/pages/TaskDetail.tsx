@@ -79,7 +79,7 @@ const TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   TODO: ['IN_PROGRESS'],
   IN_PROGRESS: ['IN_REVIEW', 'TODO'],
   IN_REVIEW: ['DONE', 'IN_PROGRESS'],
-  DONE: ['IN_PROGRESS'],
+  DONE: ['IN_REVIEW'],
 };
 
 function formatActivityLine(entry: ActivityLogDto): string {

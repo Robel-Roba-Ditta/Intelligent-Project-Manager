@@ -64,10 +64,11 @@ describe('Dashboard', () => {
   it('tasksByStatus matches exact seeded counts', async () => {
     setToken(token1);
     const { data } = await api.get('/dashboard');
-    // 3 TODO, 2 IN_PROGRESS (+ 0 IN_REVIEW merged), 1 DONE
+    // 3 TODO, 2 IN_PROGRESS, 0 IN_REVIEW, 1 DONE
     // But other tests may have created tasks in other projects — we care about at-least
     expect(data.tasksByStatus.todo).toBeGreaterThanOrEqual(3);
     expect(data.tasksByStatus.in_progress).toBeGreaterThanOrEqual(2);
+    expect(typeof data.tasksByStatus.in_review).toBe('number');
     expect(data.tasksByStatus.done).toBeGreaterThanOrEqual(1);
   });
 

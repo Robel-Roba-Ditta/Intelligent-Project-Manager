@@ -7,6 +7,7 @@ import { Task } from '../tasks/entities/task.entity';
 import { Watcher } from '../watchers/entities/watcher.entity';
 import { User } from '../users/entities/user.entity';
 import { TaskAssigneeChangedEvent, TaskStatusChangedEvent } from '../activity/events';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationListener {
@@ -19,6 +20,7 @@ export class NotificationListener {
     private readonly watchersRepo: Repository<Watcher>,
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
+    private readonly gateway: NotificationsGateway,
   ) {}
 
   @OnEvent('task.assignee_changed')
@@ -32,7 +34,7 @@ export class NotificationListener {
     const actor = await this.usersRepo.findOne({ where: { id: event.actorId } });
     const actorName = actor?.fullName || 'Someone';
 
-    await this.notifRepo.save(
+    const saved = await this.notifRepo.save(
       this.notifRepo.create({
         userId: event.toAssigneeId,
         taskId: event.taskId,
@@ -40,6 +42,11 @@ export class NotificationListener {
         message: `${actorName} assigned you to "${task.title}"`,
       }),
     );
+
+    // Push via WebSocket
+    this.gateway.server
+      .to(`user:${event.toAssigneeId}`)
+      .emit('notification', saved);
   }
 
   @OnEvent('task.status_changed')
@@ -75,7 +82,14 @@ export class NotificationListener {
     );
 
     if (notifications.length > 0) {
-      await this.notifRepo.save(notifications);
+      const saved = await this.notifRepo.save(notifications);
+
+      // Push each notification via WebSocket to the respective user
+      for (const notif of saved) {
+        this.gateway.server
+          .to(`user:${notif.userId}`)
+          .emit('notification', notif);
+      }
     }
   }
 }

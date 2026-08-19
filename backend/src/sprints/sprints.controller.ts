@@ -83,4 +83,9 @@ export class SprintsController {
   ) {
     return this.sprintsService.complete(id, user.sub);
   }
+
+  @Get('sprints/:id/burndown')
+  burndown(@Param('id', ParseIntPipe) id: number) {
+    return this.sprintsService.getBurndown(id);
+  }
 }

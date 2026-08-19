@@ -141,6 +141,14 @@ export class TasksService {
     });
 
     const saved = await this.tasksRepository.save(task);
+
+    if (dto.assigneeId) {
+      this.eventEmitter.emit(
+        'task.assignee_changed',
+        new TaskAssigneeChangedEvent(saved.id, userId, null, dto.assigneeId),
+      );
+    }
+
     return this.findOne(saved.id);
   }
 
@@ -275,7 +283,7 @@ export class TasksService {
     [TaskStatus.TODO]: [TaskStatus.IN_PROGRESS],
     [TaskStatus.IN_PROGRESS]: [TaskStatus.IN_REVIEW, TaskStatus.TODO],
     [TaskStatus.IN_REVIEW]: [TaskStatus.DONE, TaskStatus.IN_PROGRESS],
-    [TaskStatus.DONE]: [TaskStatus.IN_PROGRESS],
+    [TaskStatus.DONE]: [TaskStatus.IN_REVIEW],
   };
 
   async changeStatus(id: number, newStatus: TaskStatus, userId: number): Promise<Task> {

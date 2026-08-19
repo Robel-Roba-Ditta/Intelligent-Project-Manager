@@ -77,14 +77,15 @@ describe('Workflow — status transitions', () => {
     expect(unchanged.completedAt).not.toBeNull();
   });
 
-  it('DONE → IN_PROGRESS is allowed and clears completedAt', async () => {
-    task = await changeTaskStatus(task.id, 'IN_PROGRESS');
-    expect(task.status).toBe('IN_PROGRESS');
+  it('DONE → IN_REVIEW is allowed and clears completedAt', async () => {
+    task = await changeTaskStatus(task.id, 'IN_REVIEW');
+    expect(task.status).toBe('IN_REVIEW');
     expect(task.completedAt).toBeNull();
   });
 
   it('illegal transition TODO → DONE is rejected (400)', async () => {
-    // First move back to TODO
+    // Move back to TODO: IN_REVIEW → IN_PROGRESS → TODO
+    task = await changeTaskStatus(task.id, 'IN_PROGRESS');
     task = await changeTaskStatus(task.id, 'TODO');
     expect(task.status).toBe('TODO');
 
@@ -97,10 +98,24 @@ describe('Workflow — status transitions', () => {
     }
   });
 
-  it('status changes are recorded in the activity log', async () => {
-    // Task is in TODO after the previous test reset it.
-    // Move TODO → IN_PROGRESS to create a recorded change.
+  it('illegal transition IN_PROGRESS → DONE is rejected (400)', async () => {
+    // Move to IN_PROGRESS
     task = await changeTaskStatus(task.id, 'IN_PROGRESS');
+    expect(task.status).toBe('IN_PROGRESS');
+
+    try {
+      await changeTaskStatus(task.id, 'DONE');
+      expect.unreachable('Should not allow IN_PROGRESS → DONE');
+    } catch (err: any) {
+      expect(err.response?.status).toBe(400);
+      expect(err.response?.data?.message).toMatch(/Cannot move/i);
+    }
+  });
+
+  it('status changes are recorded in the activity log', async () => {
+    // Task is in IN_PROGRESS after the previous test.
+    // Move IN_PROGRESS → TODO to create a recorded change.
+    task = await changeTaskStatus(task.id, 'TODO');
 
     // Small delay for async event
     await new Promise((r) => setTimeout(r, 100));
@@ -111,14 +126,13 @@ describe('Workflow — status transitions', () => {
     const statusEntries = activity.filter((e: any) => e.action === 'status_changed');
     expect(statusEntries.length).toBeGreaterThanOrEqual(1);
     const last = statusEntries[statusEntries.length - 1];
-    expect(last.details.fromStatus).toBe('TODO');
-    expect(last.details.toStatus).toBe('IN_PROGRESS');
+    expect(last.details.fromStatus).toBe('IN_PROGRESS');
+    expect(last.details.toStatus).toBe('TODO');
     expect(last.actor).toBeDefined();
   });
 
   it('illegal transition TODO → IN_REVIEW is rejected (400)', async () => {
-    // Reset to TODO (task is in IN_PROGRESS after the activity test)
-    task = await changeTaskStatus(task.id, 'TODO');
+    // Task is in TODO after the activity test
     expect(task.status).toBe('TODO');
 
     try {

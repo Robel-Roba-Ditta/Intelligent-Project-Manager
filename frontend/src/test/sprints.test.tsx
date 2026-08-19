@@ -77,6 +77,18 @@ describe('Sprints — state machine lifecycle', () => {
     }
   });
 
+  it('rejects starting another sprint when one is already active', async () => {
+    // sprint is currently ACTIVE. Create a new sprint in PLANNED.
+    const secondSprint = await createSprint(project.id, { name: 'Sprint 2' });
+    try {
+      await startSprint(secondSprint.id);
+      expect.unreachable('Should not be able to start a sprint if another is already active in the same project');
+    } catch (err: any) {
+      expect(err.response?.status).toBe(400);
+      expect(err.response?.data?.message).toMatch(/first/i); // "Complete the active sprint first"
+    }
+  });
+
   it('completing an ACTIVE sprint transitions to COMPLETED and stamps endDate', async () => {
     const completed = await completeSprint(sprint.id);
     expect(completed.status).toBe('COMPLETED');
@@ -106,7 +118,9 @@ describe('Sprints — state machine lifecycle', () => {
 
   it('sprint list is scoped to the project', async () => {
     const sprints = await listSprints(project.id);
-    expect(sprints).toHaveLength(1);
-    expect(sprints[0].name).toBe('Sprint 1');
+    expect(sprints).toHaveLength(2);
+    // Ordered by createdAt DESC
+    expect(sprints[0].name).toBe('Sprint 2');
+    expect(sprints[1].name).toBe('Sprint 1');
   });
 });

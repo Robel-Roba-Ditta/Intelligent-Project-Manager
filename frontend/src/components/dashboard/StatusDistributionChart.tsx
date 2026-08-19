@@ -4,6 +4,7 @@ import type { TaskStatus } from '../../data/types';
 const STATUS_META: Record<TaskStatus, { label: string; color: string }> = {
   todo: { label: 'To Do', color: '#9a9db3' },
   in_progress: { label: 'In Progress', color: '#e8a33d' },
+  in_review: { label: 'In Review', color: '#6366f1' },
   done: { label: 'Done', color: '#1f9d7c' },
 };
 
@@ -21,7 +22,7 @@ export function StatusDistributionChart({
   }));
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="overflow-hidden rounded-xl border border-border-app bg-surface p-5">
       <h3 className="font-display text-base font-semibold text-ink">Tasks by status</h3>
       <p className="text-sm text-muted">{total} tasks across all active projects</p>
 

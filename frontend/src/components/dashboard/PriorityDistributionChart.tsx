@@ -22,7 +22,7 @@ export function PriorityDistributionChart({
   }));
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="overflow-hidden rounded-xl border border-border-app bg-surface p-5">
       <h3 className="font-display text-base font-semibold text-ink">Tasks by priority</h3>
       <p className="text-sm text-muted">{total} tasks across all active projects</p>
 

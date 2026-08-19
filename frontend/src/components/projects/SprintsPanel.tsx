@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { AlertCircle, Plus, Pencil, Trash2, X, Play, CheckCircle } from 'lucide-react';
+import { AlertCircle, Plus, Pencil, Trash2, X, Play, CheckCircle, BarChart3 } from 'lucide-react';
 import {
   listSprints,
   createSprint,
@@ -11,6 +11,7 @@ import {
   type SprintStatus,
 } from '../../lib/sprintsApi';
 import { extractErrorMessage } from '../../lib/api';
+import { BurndownChart } from './BurndownChart';
 
 const STATUS_CONFIG: Record<SprintStatus, { label: string; dot: string; bg: string; text: string }> = {
   PLANNED: { label: 'Planned', dot: 'bg-slate-400', bg: 'bg-slate-50 border-slate-200', text: 'text-slate-600' },
@@ -31,6 +32,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
   const [sprints, setSprints] = useState<SprintDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [expandedBurndown, setExpandedBurndown] = useState<number | null>(null);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -290,6 +292,23 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
                     </button>
                   </div>
                 </div>
+
+                {/* Burndown toggle for active/completed sprints */}
+                {(sprint.status === 'ACTIVE' || sprint.status === 'COMPLETED') && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedBurndown(expandedBurndown === sprint.id ? null : sprint.id)}
+                      className="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand transition-colors hover:text-brand-dark"
+                    >
+                      <BarChart3 size={13} />
+                      {expandedBurndown === sprint.id ? 'Hide Burndown' : 'Show Burndown'}
+                    </button>
+                    {expandedBurndown === sprint.id && (
+                      <BurndownChart sprintId={sprint.id} />
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

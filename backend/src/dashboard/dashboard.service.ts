@@ -84,11 +84,12 @@ export class DashboardService {
       };
     }
 
-    // 6. tasksByStatus (lowercase to match types.ts — merge IN_REVIEW into in_progress)
-    const tasksByStatus = { todo: 0, in_progress: 0, done: 0 };
+    // 6. tasksByStatus (lowercase to match types.ts)
+    const tasksByStatus = { todo: 0, in_progress: 0, in_review: 0, done: 0 };
     for (const t of allTasks) {
       if (t.status === TaskStatus.TODO) tasksByStatus.todo++;
-      else if (t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.IN_REVIEW) tasksByStatus.in_progress++;
+      else if (t.status === TaskStatus.IN_PROGRESS) tasksByStatus.in_progress++;
+      else if (t.status === TaskStatus.IN_REVIEW) tasksByStatus.in_review++;
       else if (t.status === TaskStatus.DONE) tasksByStatus.done++;
     }
 
@@ -177,7 +178,7 @@ export class DashboardService {
     switch (status) {
       case TaskStatus.TODO: return 'todo';
       case TaskStatus.IN_PROGRESS: return 'in_progress';
-      case TaskStatus.IN_REVIEW: return 'in_progress';
+      case TaskStatus.IN_REVIEW: return 'in_review';
       case TaskStatus.DONE: return 'done';
     }
   }
@@ -257,7 +258,7 @@ export class DashboardService {
     return {
       stats: { activeProjects: 0, openTasks: 0, completedThisSprint: 0, overdueTasks: 0 },
       sprint: null,
-      tasksByStatus: { todo: 0, in_progress: 0, done: 0 },
+      tasksByStatus: { todo: 0, in_progress: 0, in_review: 0, done: 0 },
       tasksByPriority: { low: 0, medium: 0, high: 0, urgent: 0 },
       weeklyTrend: this.emptyWeeklyTrend(),
       myTasks: [],

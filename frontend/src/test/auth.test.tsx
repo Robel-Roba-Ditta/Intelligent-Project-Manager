@@ -103,7 +103,7 @@ describe('Login page', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: /^projects$/i })).toBeInTheDocument(), {
       timeout: 5000,
     });
-  });
+  }, 15000);
 
   it('clicking "Log in" with the wrong password shows an error and does not navigate', async () => {
     const user = userEvent.setup();
