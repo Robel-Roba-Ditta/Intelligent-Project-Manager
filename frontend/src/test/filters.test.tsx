@@ -10,9 +10,9 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest } from '../lib/api';
-import { createProject, addProjectMember } from '../lib/projectsApi';
-import { createTask, listTasks } from '../lib/tasksApi';
+import { setToken, registerRequest } from '../common/lib/api';
+import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
+import { createTask, listTasks } from '../modules/task/api/tasksApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

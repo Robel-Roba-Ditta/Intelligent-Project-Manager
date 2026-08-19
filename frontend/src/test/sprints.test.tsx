@@ -11,15 +11,15 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest } from '../lib/api';
-import { createProject, type ProjectDto } from '../lib/projectsApi';
+import { setToken, registerRequest } from '../common/lib/api';
+import { createProject, type ProjectDto } from '../modules/project/api/projectsApi';
 import {
   listSprints,
   createSprint,
   startSprint,
   completeSprint,
   type SprintDto,
-} from '../lib/sprintsApi';
+} from '../modules/sprint/api/sprintsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

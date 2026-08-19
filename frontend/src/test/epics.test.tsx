@@ -8,9 +8,9 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest } from '../lib/api';
-import { createProject, type ProjectDto } from '../lib/projectsApi';
-import { listEpics, createEpic, updateEpic, deleteEpic, type EpicDto } from '../lib/epicsApi';
+import { setToken, registerRequest } from '../common/lib/api';
+import { createProject, type ProjectDto } from '../modules/project/api/projectsApi';
+import { listEpics, createEpic, updateEpic, deleteEpic, type EpicDto } from '../modules/epic/api/epicsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

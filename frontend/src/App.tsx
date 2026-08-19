@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
-import { Dashboard } from './pages/Dashboard';
-import { ProjectsList } from './pages/ProjectsList';
-import { ProjectDetail } from './pages/ProjectDetail';
-import { TaskDetail } from './pages/TaskDetail';
-import { GlobalSprints } from './pages/GlobalSprints';
-import { MyTasks } from './pages/MyTasks';
-import { TeamDirectory } from './pages/TeamDirectory';
-import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute';
+import { Login } from './modules/auth/pages/Login';
+import { Signup } from './modules/auth/pages/Signup';
+import { Dashboard } from './modules/dashboard/pages/Dashboard';
+import { ProjectsList } from './modules/project/pages/ProjectsList';
+import { ProjectDetail } from './modules/project/pages/ProjectDetail';
+import { TaskDetail } from './modules/task/pages/TaskDetail';
+import { GlobalSprints } from './modules/sprint/pages/GlobalSprints';
+import { MyTasks } from './modules/task/pages/MyTasks';
+import { TeamDirectory } from './modules/user/pages/TeamDirectory';
+import { ProtectedRoute, GuestRoute } from './common/components/ProtectedRoute';
 
 export default function App() {
   return (

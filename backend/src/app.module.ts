@@ -2,36 +2,36 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { User } from './users/entities/user.entity';
-import { ProjectsModule } from './projects/projects.module';
-import { Project } from './projects/entities/project.entity';
-import { ProjectMember } from './projects/entities/project-member.entity';
-import { EpicsModule } from './epics/epics.module';
-import { Epic } from './epics/entities/epic.entity';
-import { SprintsModule } from './sprints/sprints.module';
-import { Sprint } from './sprints/entities/sprint.entity';
-import { TasksModule } from './tasks/tasks.module';
-import { Task } from './tasks/entities/task.entity';
-import { LabelsModule } from './labels/labels.module';
-import { Label } from './labels/entities/label.entity';
-import { CommentsModule } from './comments/comments.module';
-import { Comment } from './comments/entities/comment.entity';
-import { AttachmentsModule } from './attachments/attachments.module';
-import { Attachment } from './attachments/entities/attachment.entity';
-import { WatchersModule } from './watchers/watchers.module';
-import { Watcher } from './watchers/entities/watcher.entity';
-import { ActivityModule } from './activity/activity.module';
-import { ActivityLog } from './activity/entities/activity-log.entity';
-import { TimeLogsModule } from './time-logs/time-logs.module';
-import { TimeLog } from './time-logs/entities/time-log.entity';
-import { DependenciesModule } from './dependencies/dependencies.module';
-import { TaskDependency } from './dependencies/entities/task-dependency.entity';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { Notification } from './notifications/entities/notification.entity';
-import { SearchModule } from './search/search.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { User } from './modules/user/domain/user.entity';
+import { ProjectModule } from './modules/project/project.module';
+import { Project } from './modules/project/domain/project.entity';
+import { ProjectMember } from './modules/project/domain/project-member.entity';
+import { EpicModule } from './modules/epic/epic.module';
+import { Epic } from './modules/epic/domain/epic.entity';
+import { SprintModule } from './modules/sprint/sprint.module';
+import { Sprint } from './modules/sprint/domain/sprint.entity';
+import { TaskModule } from './modules/task/task.module';
+import { Task } from './modules/task/domain/task.entity';
+import { LabelModule } from './modules/label/label.module';
+import { Label } from './modules/label/domain/label.entity';
+import { CommentModule } from './modules/comment/comment.module';
+import { Comment } from './modules/comment/domain/comment.entity';
+import { AttachmentModule } from './modules/attachment/attachment.module';
+import { Attachment } from './modules/attachment/domain/attachment.entity';
+import { WatcherModule } from './modules/watcher/watcher.module';
+import { Watcher } from './modules/watcher/domain/watcher.entity';
+import { ActivityModule } from './modules/activity/activity.module';
+import { ActivityLog } from './modules/activity/domain/activity-log.entity';
+import { TimeLogModule } from './modules/time-log/time-log.module';
+import { TimeLog } from './modules/time-log/domain/time-log.entity';
+import { DependencyModule } from './modules/dependency/dependency.module';
+import { TaskDependency } from './modules/dependency/domain/task-dependency.entity';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { Notification } from './modules/notification/domain/notification.entity';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -61,21 +61,21 @@ import { SearchModule } from './search/search.module';
       }),
     }),
 
-    UsersModule,
+    UserModule,
     AuthModule,
-    ProjectsModule,
-    EpicsModule,
-    SprintsModule,
-    TasksModule,
-    LabelsModule,
-    CommentsModule,
-    AttachmentsModule,
-    WatchersModule,
+    ProjectModule,
+    EpicModule,
+    SprintModule,
+    TaskModule,
+    LabelModule,
+    CommentModule,
+    AttachmentModule,
+    WatcherModule,
     ActivityModule,
-    TimeLogsModule,
-    DependenciesModule,
+    TimeLogModule,
+    DependencyModule,
     DashboardModule,
-    NotificationsModule,
+    NotificationModule,
     SearchModule,
   ],
 })

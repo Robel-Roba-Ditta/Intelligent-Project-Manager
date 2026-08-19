@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getInitials, avatarColorForName, formatDueDate, formatRelativeTime } from '../lib/utils';
+import { getInitials, avatarColorForName, formatDueDate, formatRelativeTime } from '../common/lib/utils';
 
 describe('getInitials', () => {
   it('returns two initials from "Alice Bob"', () => {
@@ -48,7 +48,7 @@ describe('avatarColorForName', () => {
 });
 
 describe('formatDueDate', () => {
-  let originalDate: typeof Date;
+  
 
   beforeEach(() => {
     // Fix "today" to a known date for deterministic tests

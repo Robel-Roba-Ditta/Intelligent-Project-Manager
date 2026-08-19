@@ -7,14 +7,14 @@
  *
  * Requires the backend to be running on http://localhost:3000.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest, api } from '../lib/api';
-import { createProject, addProjectMember, type ProjectDto } from '../lib/projectsApi';
-import { createTask, changeTaskStatus, type TaskDto } from '../lib/tasksApi';
-import { createEpic } from '../lib/epicsApi';
-import { createSprint, startSprint, type SprintDto } from '../lib/sprintsApi';
-import { createComment } from '../lib/commentsApi';
-import { listNotifications } from '../lib/notificationsApi';
+import { describe, it, expect } from 'vitest';
+import { setToken, registerRequest, api } from '../common/lib/api';
+import { createProject, addProjectMember, type ProjectDto } from '../modules/project/api/projectsApi';
+import { createTask, changeTaskStatus, type TaskDto } from '../modules/task/api/tasksApi';
+import { createEpic } from '../modules/epic/api/epicsApi';
+import { createSprint } from '../modules/sprint/api/sprintsApi';
+import { createComment } from '../modules/comment/api/commentsApi';
+import { listNotifications } from '../modules/notification/api/notificationsApi';
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;

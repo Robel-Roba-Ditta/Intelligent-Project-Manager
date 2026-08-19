@@ -11,22 +11,22 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest, type AuthUser } from '../lib/api';
+import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
 import {
   createProject,
   addProjectMember,
   type ProjectDto,
-} from '../lib/projectsApi';
-import { createEpic, type EpicDto } from '../lib/epicsApi';
-import { createSprint, type SprintDto } from '../lib/sprintsApi';
+} from '../modules/project/api/projectsApi';
+import { createEpic, type EpicDto } from '../modules/epic/api/epicsApi';
+import { createSprint, type SprintDto } from '../modules/sprint/api/sprintsApi';
 import {
   createTask,
   getTask,
   updateTask,
   changeTaskStatus,
   type TaskDto,
-} from '../lib/tasksApi';
-import { createLabel, attachLabel, type LabelDto } from '../lib/labelsApi';
+} from '../modules/task/api/tasksApi';
+import { createLabel, attachLabel, type LabelDto } from '../modules/label/api/labelsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

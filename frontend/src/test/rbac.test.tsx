@@ -13,7 +13,7 @@ import {
   setToken,
   registerRequest,
   type AuthUser,
-} from '../lib/api';
+} from '../common/lib/api';
 import {
   createProject,
   deactivateProject,
@@ -22,7 +22,7 @@ import {
   removeProjectMember,
   updateProjectMemberRole,
   type ProjectDto,
-} from '../lib/projectsApi';
+} from '../modules/project/api/projectsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

@@ -7,12 +7,12 @@
  * - GET /sprints/me/active
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest, type AuthUser } from '../lib/api';
-import { createProject, addProjectMember } from '../lib/projectsApi';
-import { createTask, getMyTasks } from '../lib/tasksApi';
-import { createSprint, startSprint } from '../lib/sprintsApi';
-import { getMyActiveSprints } from '../lib/sprintsApi';
-import { listUsers } from '../lib/usersApi';
+import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
+import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
+import { createTask, getMyTasks } from '../modules/task/api/tasksApi';
+import { createSprint, startSprint } from '../modules/sprint/api/sprintsApi';
+import { getMyActiveSprints } from '../modules/sprint/api/sprintsApi';
+import { listUsers } from '../modules/user/api/usersApi';
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;

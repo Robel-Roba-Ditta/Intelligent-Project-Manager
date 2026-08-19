@@ -9,11 +9,11 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest } from '../lib/api';
-import { createProject, addProjectMember } from '../lib/projectsApi';
-import { createTask, updateTask, changeTaskStatus, type TaskDto } from '../lib/tasksApi';
-import { watchTask } from '../lib/watchersApi';
-import { listNotifications, markNotificationRead, markAllNotificationsRead } from '../lib/notificationsApi';
+import { setToken, registerRequest } from '../common/lib/api';
+import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
+import { createTask, updateTask, changeTaskStatus, type TaskDto } from '../modules/task/api/tasksApi';
+import { watchTask } from '../modules/watcher/api/watchersApi';
+import { listNotifications, markNotificationRead, markAllNotificationsRead } from '../modules/notification/api/notificationsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

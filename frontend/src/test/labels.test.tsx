@@ -11,9 +11,9 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest } from '../lib/api';
-import { createProject } from '../lib/projectsApi';
-import { createTask, getTask, type TaskDto } from '../lib/tasksApi';
+import { setToken, registerRequest } from '../common/lib/api';
+import { createProject } from '../modules/project/api/projectsApi';
+import { createTask, getTask, type TaskDto } from '../modules/task/api/tasksApi';
 import {
   listLabels,
   createLabel,
@@ -21,7 +21,7 @@ import {
   attachLabel,
   detachLabel,
   type LabelDto,
-} from '../lib/labelsApi';
+} from '../modules/label/api/labelsApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 

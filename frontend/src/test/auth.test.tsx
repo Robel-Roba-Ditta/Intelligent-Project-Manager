@@ -3,7 +3,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider } from '../common/context/AuthContext';
 
 
 beforeEach(() => {

@@ -9,13 +9,13 @@
  * Requires the backend to be running on http://localhost:3000.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { setToken, registerRequest, type AuthUser } from '../lib/api';
-import { createProject, addProjectMember } from '../lib/projectsApi';
-import { createTask, changeTaskStatus, type TaskDto } from '../lib/tasksApi';
-import { listActivity, type ActivityLogDto } from '../lib/activityApi';
-import { createComment } from '../lib/commentsApi';
-import { createTimeLog } from '../lib/timeLogsApi';
-import { updateTask } from '../lib/tasksApi';
+import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
+import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
+import { createTask, changeTaskStatus, type TaskDto } from '../modules/task/api/tasksApi';
+import { listActivity, type ActivityLogDto } from '../modules/activity/api/activityApi';
+import { createComment } from '../modules/comment/api/commentsApi';
+import { createTimeLog } from '../modules/time-log/api/timeLogsApi';
+import { updateTask } from '../modules/task/api/tasksApi';
 
 /* ─── Helpers ────────────────────────────────────────────── */
 
