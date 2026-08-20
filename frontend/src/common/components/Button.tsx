@@ -9,7 +9,7 @@ export function Button({ isLoading, disabled, children, ...rest }: ButtonProps) 
   return (
     <button
       disabled={isLoading || disabled}
-      className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-60"
       {...rest}
     >
       {isLoading && <Loader2 size={16} className="animate-spin" />}

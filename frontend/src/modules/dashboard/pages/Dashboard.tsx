@@ -27,7 +27,7 @@ export function Dashboard() {
         const res = await api.get<DashboardData>('/dashboard');
         if (!cancelled) setData(res.data);
       } catch {
-        // Dashboard is best-effort
+        
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -89,7 +89,7 @@ export function Dashboard() {
           {data.sprint ? (
             <SprintProgressCard sprint={data.sprint} />
           ) : (
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <p className="text-sm text-muted">No active sprint.</p>
             </div>
           )}

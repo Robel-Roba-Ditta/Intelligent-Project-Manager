@@ -47,7 +47,7 @@ export function TeamDirectory() {
             placeholder="Search team..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-border-light bg-white py-2 pl-9 pr-4 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 sm:w-64"
+            className="w-full rounded-md border border-border-light bg-white py-2 pl-9 pr-4 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 sm:w-64"
           />
         </div>
       </div>
@@ -68,7 +68,7 @@ export function TeamDirectory() {
           {filteredUsers.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-4 rounded-xl border border-border-app bg-surface p-4 transition-all hover:border-brand/30 hover:shadow-sm"
+              className="flex items-center gap-4 rounded-lg border border-border-app bg-surface p-4 transition-all hover:border-brand/30 hover:shadow-sm"
             >
               <div
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full font-display text-sm font-semibold text-white shadow-sm"
@@ -83,7 +83,7 @@ export function TeamDirectory() {
             </div>
           ))}
           {filteredUsers.length === 0 && !error && (
-            <div className="col-span-full rounded-xl border border-dashed border-border-app p-8 text-center text-sm text-muted">
+            <div className="col-span-full rounded-lg border border-dashed border-border-app p-8 text-center text-sm text-muted">
               No team members found matching your search.
             </div>
           )}

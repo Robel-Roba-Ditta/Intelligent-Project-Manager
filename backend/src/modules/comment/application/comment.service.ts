@@ -94,13 +94,13 @@ export class CommentService {
     });
     if (!comment) throw new NotFoundException('Comment not found');
 
-    // Author can always delete their own comment
+    
     if (comment.authorId === userId) {
       await this.commentRepo.remove(comment);
       return;
     }
 
-    // Otherwise, must be admin/owner on the project
+    
     const task = await this.getTaskOrFail(comment.taskId);
     const membership = await this.membersRepo.findOne({
       where: { projectId: task.projectId, userId },

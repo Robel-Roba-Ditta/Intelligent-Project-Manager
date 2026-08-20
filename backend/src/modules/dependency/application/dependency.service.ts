@@ -50,17 +50,17 @@ export class DependencyService {
 
     await this.assertMember(blockingTask.projectId, userId);
 
-    // Validate: not self-referencing
+    
     if (blockingTaskId === dto.blockedTaskId) {
       throw new BadRequestException('A task cannot depend on itself');
     }
 
-    // Validate: same project
+    
     if (blockingTask.projectId !== blockedTask.projectId) {
       throw new BadRequestException('Both tasks must belong to the same project');
     }
 
-    // Validate: no direct reverse cycle
+    
     const reverse = await this.depRepo.findOne({
       where: { blockingTaskId: dto.blockedTaskId, blockedTaskId: blockingTaskId },
     });
@@ -70,7 +70,7 @@ export class DependencyService {
       );
     }
 
-    // Check for duplicate
+    
     const existing = await this.depRepo.findOne({
       where: { blockingTaskId, blockedTaskId: dto.blockedTaskId },
     });

@@ -35,7 +35,7 @@ export function MembersPanel({
   const isOwner = currentMembership?.role === 'owner';
   const isAdmin = currentMembership?.role === 'admin' || isOwner;
 
-  // Sort members: owner first, then admins, then members
+  
   const sortedMembers = [...project.members].sort((a, b) => {
     const order: Record<string, number> = { owner: 0, admin: 1, member: 2 };
     return (order[a.role] ?? 3) - (order[b.role] ?? 3);
@@ -92,9 +92,9 @@ export function MembersPanel({
 
   return (
     <div className="space-y-6">
-      {/* Add member form — visible to admins/owners */}
+      {}
       {isAdmin && (
-        <div className="rounded-xl border border-border-app bg-surface p-5">
+        <div className="rounded-lg border border-border-app bg-surface p-5">
           <h3 className="mb-3 font-display text-sm font-semibold text-ink">Add a member</h3>
           <form onSubmit={handleAddMember} className="flex items-end gap-3">
             <div className="flex-1">
@@ -108,7 +108,7 @@ export function MembersPanel({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="teammate@example.com"
-                className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
@@ -119,7 +119,7 @@ export function MembersPanel({
                 id="invite-role"
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value as ProjectMemberRole)}
-                className="rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink"
+                className="rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink"
               >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
@@ -138,7 +138,7 @@ export function MembersPanel({
         </div>
       )}
 
-      {/* Feedback alerts */}
+      {}
       {error && (
         <div
           role="alert"
@@ -154,8 +154,8 @@ export function MembersPanel({
         </div>
       )}
 
-      {/* Members list */}
-      <div className="rounded-xl border border-border-app bg-surface">
+      {}
+      <div className="rounded-lg border border-border-app bg-surface">
         <div className="border-b border-border-app px-5 py-3">
           <h3 className="font-display text-sm font-semibold text-ink">
             {project.members.length} {project.members.length === 1 ? 'member' : 'members'}
@@ -174,7 +174,7 @@ export function MembersPanel({
                 key={member.id}
                 className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-canvas/50"
               >
-                {/* Avatar */}
+                {}
                 <span
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-mono text-xs font-medium text-white shadow-sm"
                   style={{ backgroundColor: avatarColorForName(member.user.fullName) }}
@@ -182,7 +182,7 @@ export function MembersPanel({
                   {getInitials(member.user.fullName)}
                 </span>
 
-                {/* Name + email */}
+                {}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">
                     {member.user.fullName}
@@ -193,7 +193,7 @@ export function MembersPanel({
                   <p className="truncate text-xs text-muted">{member.user.email}</p>
                 </div>
 
-                {/* Role badge or dropdown */}
+                {}
                 {canEditRole ? (
                   <select
                     value={member.role}
@@ -217,7 +217,7 @@ export function MembersPanel({
                   </span>
                 )}
 
-                {/* Remove button */}
+                {}
                 {canRemove ? (
                   <button
                     type="button"
@@ -229,7 +229,7 @@ export function MembersPanel({
                     <X size={15} />
                   </button>
                 ) : (
-                  <div className="w-[30px]" /> /* spacer to keep alignment */
+                  <div className="w-[30px]" /> 
                 )}
               </li>
             );

@@ -93,11 +93,9 @@ export class SprintService {
     await this.sprintRepository.remove(sprint);
   }
 
-  // ─── State-machine action endpoints ────────────────────────
+  
 
-  /**
-   * PLANNED → ACTIVE, stamps startDate.
-   */
+  
   async start(id: number, userId: number): Promise<Sprint> {
     const sprint = await this.findOne(id);
     await this.assertMember(sprint.projectId, userId);
@@ -108,7 +106,7 @@ export class SprintService {
       );
     }
 
-    // Business rule: only one active sprint per project
+    
     const existingActive = await this.sprintRepository.findOne({
       where: { projectId: sprint.projectId, status: SprintStatus.ACTIVE },
     });
@@ -124,9 +122,7 @@ export class SprintService {
     return this.findOne(id);
   }
 
-  /**
-   * ACTIVE → COMPLETED, stamps endDate.
-   */
+  
   async complete(id: number, userId: number): Promise<Sprint> {
     const sprint = await this.findOne(id);
     await this.assertMember(sprint.projectId, userId);
@@ -143,7 +139,7 @@ export class SprintService {
     return this.findOne(id);
   }
 
-  // ─── Burndown Chart ────────────────────────────────────────
+  
 
   async getBurndown(id: number) {
     const sprint = await this.findOne(id);
@@ -157,11 +153,11 @@ export class SprintService {
     });
 
     const startDate = new Date(sprint.startDate);
-    // For active sprints use today, for completed use endDate
+    
     const endDate = sprint.endDate ? new Date(sprint.endDate) : new Date();
-    const lastDay = sprint.endDate ? endDate : new Date(); // cap at today for active
+    const lastDay = sprint.endDate ? endDate : new Date(); 
 
-    // Get all status_changed events to DONE for tasks in this sprint
+    
     const doneEvents = await this.activityRepository
       .createQueryBuilder('al')
       .innerJoin('al.task', 'task')
@@ -173,21 +169,21 @@ export class SprintService {
       .orderBy('al.createdAt', 'ASC')
       .getMany();
 
-    // Build a map of date -> cumulative completions
+    
     const completionsByDate = new Map<string, number>();
     for (const event of doneEvents) {
       const dateKey = new Date(event.createdAt).toISOString().split('T')[0];
       completionsByDate.set(dateKey, (completionsByDate.get(dateKey) || 0) + 1);
     }
 
-    // Calculate total sprint duration in days for ideal line
+    
     const sprintEndForIdeal = sprint.endDate ? new Date(sprint.endDate) : endDate;
     const totalDays = Math.max(
       1,
       Math.ceil((sprintEndForIdeal.getTime() - startDate.getTime()) / 86_400_000),
     );
 
-    // Build day-by-day data
+    
     const days: { date: string; idealRemaining: number; actualRemaining: number }[] = [];
     let cumulativeCompleted = 0;
 

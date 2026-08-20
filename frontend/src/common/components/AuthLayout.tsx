@@ -18,7 +18,7 @@ function MiniBoard() {
         </div>
       ))}
 
-      {/* Static cards */}
+      {}
       <div
         className="absolute h-8 w-[78px] rounded-md border-l-2 border-muted-dark bg-ink-softer"
         style={{ left: 6, top: 34 }}
@@ -32,7 +32,7 @@ function MiniBoard() {
         style={{ left: 120, top: 34 }}
       />
 
-      {/* The traveling card: In progress -> Done, looping */}
+      {}
       <div
         className="card-travel absolute flex h-8 w-[78px] items-center justify-between rounded-md border-l-2 bg-ink-softer px-2"
         style={{ left: 120, top: 34 }}
@@ -59,7 +59,7 @@ export function AuthLayout({
 }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Brand panel */}
+      {}
       <div className="hidden flex-col justify-between bg-ink px-14 py-12 lg:flex">
         <div className="flex items-center gap-2">
           <img
@@ -86,7 +86,7 @@ export function AuthLayout({
         <p className="font-mono text-xs text-muted-dark">Sprint 4 · 12 tasks tracked</p>
       </div>
 
-      {/* Form panel */}
+      {}
       <div className="flex flex-col items-center justify-center bg-paper px-6 py-12">
         <div className="mb-8 flex items-center gap-2 lg:hidden">
           <img

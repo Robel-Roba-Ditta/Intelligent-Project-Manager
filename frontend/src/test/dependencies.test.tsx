@@ -1,33 +1,19 @@
-/**
- * Task Dependencies End-to-End Test Suite
- *
- * Tests:
- * - Link A blocks B via a single API call
- * - Task A lists "Blocks: B"
- * - Task B lists "Blocked by: A"
- * - Attempting the reverse "B blocks A" is rejected (direct cycle)
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest } from '../common/lib/api';
 import { createProject } from '../modules/project/api/projectsApi';
 import { createTask, type TaskDto } from '../modules/task/api/tasksApi';
 import { createDependency, listDependencies } from '../modules/dependency/api/dependenciesApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let token: string;
 let taskA: TaskDto;
 let taskB: TaskDto;
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
   const res = await registerRequest({
@@ -42,11 +28,9 @@ beforeAll(async () => {
   taskA = await createTask(project.id, { title: 'Task A (blocker)' });
   taskB = await createTask(project.id, { title: 'Task B (blocked)' });
 
-  // One single API call: A blocks B
   await createDependency(taskA.id, taskB.id);
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Task Dependencies', () => {
   it('Task A lists "Blocks: B"', async () => {
@@ -71,10 +55,8 @@ describe('Task Dependencies', () => {
     setToken(token);
     const depsA = await listDependencies(taskA.id);
     const depsB = await listDependencies(taskB.id);
-    // A blocks B is one row
     expect(depsA.blocks.length).toBe(1);
     expect(depsB.blockedBy.length).toBe(1);
-    // The dependency IDs should match
     expect(depsA.blocks[0].dependencyId).toBe(depsB.blockedBy[0].dependencyId);
   });
 

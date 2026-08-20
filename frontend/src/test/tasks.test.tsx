@@ -1,15 +1,3 @@
-/**
- * Tasks End-to-End Test Suite
- *
- * Exercises:
- * - Creating 5–6 tasks across different assignees/priorities
- * - Subtask (parentTaskId) → parent's children includes it
- * - Assigning a task to a non-member → rejected
- * - Soft-delete → disappears from default list but row still exists
- * - Epic/sprint cross-project validation
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
 import {
@@ -27,13 +15,11 @@ import {
   type TaskDto,
 } from '../modules/task/api/tasksApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let user1: AuthUser;
 let user1Token: string;
@@ -49,10 +35,8 @@ let parentTask: TaskDto;
 let subtask: TaskDto;
 let taskToDelete: TaskDto;
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
-  // Register 3 users: 2 project members + 1 outsider
   const res1 = await registerRequest({
     email: uniqueEmail('task-user1'),
     password: 'password123',
@@ -75,16 +59,13 @@ beforeAll(async () => {
   });
   outsiderUser = res3.user;
 
-  // User1 creates a project and adds User2 as a member
   setToken(user1Token);
   project = await createProject({ name: 'Task Test Project' });
   project = await addProjectMember(project.id, { email: res2.user.email, role: 'member' });
 
-  // Create an epic and sprint for the project
   epic = await createEpic(project.id, { name: 'Test Epic' });
   sprint = await createSprint(project.id, { name: 'Test Sprint' });
 
-  // Create 5 tasks with different assignees and priorities
   const task1 = await createTask(project.id, {
     title: 'Setup CI Pipeline',
     priority: 'HIGH',
@@ -124,7 +105,6 @@ beforeAll(async () => {
 
   parentTask = task1;
 
-  // Create a subtask under task1
   subtask = await createTask(project.id, {
     title: 'Configure GitHub Actions',
     priority: 'MEDIUM',
@@ -132,7 +112,6 @@ beforeAll(async () => {
     parentTaskId: parentTask.id,
   });
 
-  // Create a task we'll soft-delete later
   taskToDelete = await createTask(project.id, {
     title: 'Throwaway Task',
     priority: 'LOW',
@@ -140,13 +119,11 @@ beforeAll(async () => {
   });
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Tasks — CRUD, validation, subtasks, soft-delete', () => {
   it('created tasks have the correct properties', async () => {
     setToken(user1Token);
     const all = await listTasks(project.id);
-    // 5 original + 1 subtask + 1 throwaway = 7
     expect(all.length).toBe(7);
 
     const ciBuild = all.find((t) => t.title === 'Setup CI Pipeline');
@@ -169,7 +146,6 @@ describe('Tasks — CRUD, validation, subtasks, soft-delete', () => {
 
   it('subtask has correct parentTaskId and parent includes it in children', async () => {
     setToken(user1Token);
-    // Fetch the parent task directly — its children relation should include the subtask
     const parent = await getTask(parentTask.id);
     expect(parent.children).toBeDefined();
     expect(parent.children.length).toBeGreaterThanOrEqual(1);
@@ -177,7 +153,6 @@ describe('Tasks — CRUD, validation, subtasks, soft-delete', () => {
     expect(child).toBeDefined();
     expect(child!.title).toBe('Configure GitHub Actions');
 
-    // Verify the subtask's parentTaskId links back
     const sub = await getTask(subtask.id);
     expect(sub.parentTaskId).toBe(parentTask.id);
   });
@@ -198,24 +173,19 @@ describe('Tasks — CRUD, validation, subtasks, soft-delete', () => {
 
   it('soft-deleting a task removes it from the default list', async () => {
     setToken(user1Token);
-    // Verify the task exists in the list before deletion
     const before = await listTasks(project.id);
     expect(before.map((t) => t.title)).toContain('Throwaway Task');
 
-    // Soft-delete it
     const deleted = await deleteTask(taskToDelete.id);
     expect(deleted.isDeleted).toBe(true);
 
-    // Verify it's gone from the default list
     const after = await listTasks(project.id);
     expect(after.map((t) => t.title)).not.toContain('Throwaway Task');
-    // Should be 6 now (7 - 1 soft-deleted)
     expect(after.length).toBe(6);
   });
 
   it('soft-deleted task still exists in the database (accessible via direct GET)', async () => {
     setToken(user1Token);
-    // Direct GET should still return it — just with isDeleted = true
     const task = await getTask(taskToDelete.id);
     expect(task).toBeDefined();
     expect(task.isDeleted).toBe(true);

@@ -24,7 +24,7 @@ import { AttachLabelDto } from '../dto/attach-label.dto';
 export class LabelController {
   constructor(private readonly labelService: LabelService) {}
 
-  // ─── Project-scoped label CRUD ──────────────────────────────
+  
 
   @Post('projects/:projectId/labels')
   create(
@@ -61,7 +61,7 @@ export class LabelController {
     return this.labelService.remove(id, user.sub);
   }
 
-  // ─── Task label attach/detach ──────────────────────────────
+  
 
   @Post('tasks/:id/labels')
   attachLabel(

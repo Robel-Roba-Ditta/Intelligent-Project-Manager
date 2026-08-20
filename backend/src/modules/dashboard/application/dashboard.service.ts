@@ -23,21 +23,21 @@ export class DashboardService {
   ) {}
 
   async getDashboard(userId: number) {
-    // 1. Get user's project IDs
+    
     const memberships = await this.membersRepo.find({ where: { userId } });
     const projectIds = memberships.map((m) => m.projectId);
     if (projectIds.length === 0) {
       return this.emptyDashboard();
     }
 
-    // 2. Get active projects
+    
     const projects = await this.projectsRepo.find({
       where: { id: In(projectIds) },
     });
     const activeProjects = projects.filter((p) => p.isActive);
     const activeProjectIds = activeProjects.map((p) => p.id);
 
-    // 3. All non-deleted tasks across user's projects
+    
     const allTasks = activeProjectIds.length > 0
       ? await this.tasksRepo.find({
           where: { projectId: In(activeProjectIds), isDeleted: false },
@@ -45,11 +45,11 @@ export class DashboardService {
         })
       : [];
 
-    // 4. Stats
+    
     const openTasks = allTasks.filter((t) => t.status !== TaskStatus.DONE);
     const now = new Date();
 
-    // Active sprints
+    
     const activeSprints = activeProjectIds.length > 0
       ? await this.sprintsRepo.find({
           where: { projectId: In(activeProjectIds), status: SprintStatus.ACTIVE },
@@ -66,7 +66,7 @@ export class DashboardService {
       (t) => t.dueDate && new Date(t.dueDate) < now,
     ).length;
 
-    // 5. Sprint progress card — pick most recent active sprint
+    
     let sprint: any = null;
     if (activeSprints.length > 0) {
       const s = activeSprints[0];
@@ -103,10 +103,10 @@ export class DashboardService {
       else if (p === 'urgent') tasksByPriority.urgent++;
     }
 
-    // 7. weeklyTrend — last 7 days from ActivityLog
+    
     const weeklyTrend = await this.buildWeeklyTrend(activeProjectIds);
 
-    // 8. myTasks — assigned to user, not done
+    
     const myTasks = allTasks
       .filter((t) => t.assigneeId === userId && t.status !== TaskStatus.DONE)
       .map((t) => ({

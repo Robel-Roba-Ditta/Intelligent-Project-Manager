@@ -110,13 +110,13 @@ export function TaskDetail() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Sidebar context
+  
   const [epics, setEpics] = useState<EpicDto[]>([]);
   const [sprints, setSprints] = useState<SprintDto[]>([]);
   const [members, setMembers] = useState<ProjectMemberDto[]>([]);
   const [allLabels, setAllLabels] = useState<LabelDto[]>([]);
 
-  // Inline editing
+  
   const [editingTitle, setEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editingDesc, setEditingDesc] = useState(false);
@@ -149,7 +149,7 @@ export function TaskDetail() {
   const [logHours, setLogHours] = useState('');
   const [logDate, setLogDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Dependencies
+  
   const [blocks, setBlocks] = useState<DependencyTaskRef[]>([]);
   const [blockedBy, setBlockedBy] = useState<DependencyTaskRef[]>([]);
   const [depPickerOpen, setDepPickerOpen] = useState(false);
@@ -486,8 +486,8 @@ export function TaskDetail() {
               </p>
             </div>
 
-            {/* Description */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            {}
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="font-display text-sm font-semibold text-ink">Description</h3>
                 {!editingDesc && (
@@ -496,7 +496,7 @@ export function TaskDetail() {
               </div>
               {editingDesc ? (
                 <div className="space-y-2">
-                  <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={4} className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" placeholder="Add a description…" autoFocus />
+                  <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={4} className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" placeholder="Add a description…" autoFocus />
                   <div className="flex gap-2">
                     <button onClick={handleSaveDescription} disabled={saving} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-dark disabled:opacity-60">Save</button>
                     <button onClick={() => setEditingDesc(false)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-ink">Cancel</button>
@@ -510,7 +510,7 @@ export function TaskDetail() {
             </div>
 
             {/* Subtasks */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <CheckSquare size={15} />
                 Subtasks
@@ -532,13 +532,13 @@ export function TaskDetail() {
                 <p className="mb-3 text-sm text-muted">No subtasks yet.</p>
               )}
               <form onSubmit={handleAddSubtask} className="flex gap-2">
-                <input type="text" value={subtaskTitle} onChange={(e) => setSubtaskTitle(e.target.value)} placeholder="Add a subtask…" className="flex-1 rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                <input type="text" value={subtaskTitle} onChange={(e) => setSubtaskTitle(e.target.value)} placeholder="Add a subtask…" className="flex-1 rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
                 <button type="submit" disabled={saving || !subtaskTitle.trim()} className="flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-dark disabled:opacity-60"><Plus size={13} /> Add</button>
               </form>
             </div>
 
             {/* Dependencies */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <GitBranch size={15} />
                 Dependencies
@@ -588,8 +588,8 @@ export function TaskDetail() {
                 {depPickerOpen && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setDepPickerOpen(false)} />
-                    <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-border-app bg-surface p-2 shadow-lg">
-                      <div className="mb-2 flex items-center gap-2 rounded-lg border border-border-light bg-white px-2.5 py-1.5">
+                    <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-border-app bg-surface p-2 shadow-sm">
+                      <div className="mb-2 flex items-center gap-2 rounded-md border border-border-light bg-white px-2.5 py-1.5">
                         <Search size={13} className="text-muted" />
                         <input
                           type="text"
@@ -627,7 +627,7 @@ export function TaskDetail() {
             </div>
 
             {/* Time Logs */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <Clock size={15} />
                 Time Logs
@@ -664,14 +664,14 @@ export function TaskDetail() {
                   onChange={(e) => setLogHours(e.target.value)}
                   placeholder="Hours"
                   aria-label="Hours to log"
-                  className="w-20 rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="w-20 rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
                 <input
                   type="date"
                   value={logDate}
                   onChange={(e) => setLogDate(e.target.value)}
                   aria-label="Date of work"
-                  className="rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                  className="rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
                 />
                 <button type="submit" disabled={saving || !logHours} className="flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-dark disabled:opacity-60">
                   <Clock size={13} /> Log time
@@ -680,7 +680,7 @@ export function TaskDetail() {
             </div>
 
             {/* Activity log — from API */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <Activity size={15} />
                 Activity
@@ -711,7 +711,7 @@ export function TaskDetail() {
             </div>
 
             {/* Attachments */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <Paperclip size={15} />
                 Attachments
@@ -734,14 +734,14 @@ export function TaskDetail() {
                 <p className="mb-3 text-sm text-muted">No attachments yet.</p>
               )}
               <form onSubmit={handleAddAttachment} className="flex gap-2">
-                <input type="text" value={attachFileName} onChange={(e) => setAttachFileName(e.target.value)} placeholder="File name" aria-label="Attachment file name" className="w-1/3 rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
-                <input type="url" value={attachFileUrl} onChange={(e) => setAttachFileUrl(e.target.value)} placeholder="https://…" aria-label="Attachment URL" className="flex-1 rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                <input type="text" value={attachFileName} onChange={(e) => setAttachFileName(e.target.value)} placeholder="File name" aria-label="Attachment file name" className="w-1/3 rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                <input type="url" value={attachFileUrl} onChange={(e) => setAttachFileUrl(e.target.value)} placeholder="https://…" aria-label="Attachment URL" className="flex-1 rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20" />
                 <button type="submit" disabled={saving || !attachFileName.trim() || !attachFileUrl.trim()} className="flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-dark disabled:opacity-60"><Plus size={13} /> Add</button>
               </form>
             </div>
 
             {/* Comments */}
-            <div className="rounded-xl border border-border-app bg-surface p-5">
+            <div className="rounded-lg border border-border-app bg-surface p-5">
               <h3 className="mb-3 font-display text-sm font-semibold text-ink flex items-center gap-2">
                 <MessageSquare size={15} />
                 Comments
@@ -774,7 +774,7 @@ export function TaskDetail() {
                 <p className="mb-4 text-sm text-muted">No comments yet. Be the first to comment!</p>
               )}
               <form onSubmit={handlePostComment} className="flex gap-2">
-                <textarea value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Write a comment…" aria-label="Write a comment" rows={2} className="flex-1 rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 resize-none" />
+                <textarea value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Write a comment…" aria-label="Write a comment" rows={2} className="flex-1 rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 resize-none" />
                 <button type="submit" disabled={saving || !commentBody.trim()} className="self-end flex items-center gap-1 rounded-lg bg-brand px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-brand-dark disabled:opacity-60" aria-label="Post comment"><Send size={13} /> Post</button>
               </form>
             </div>
@@ -787,7 +787,7 @@ export function TaskDetail() {
               type="button"
               onClick={handleToggleWatch}
               disabled={saving}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
+              className={`flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
                 watching
                   ? 'border-brand bg-brand/10 text-brand hover:bg-brand/20'
                   : 'border-border-app bg-surface text-ink hover:bg-canvas'
@@ -799,7 +799,7 @@ export function TaskDetail() {
             </button>
 
             {/* Status */}
-            <div className="rounded-xl border border-border-app bg-surface p-4">
+            <div className="rounded-lg border border-border-app bg-surface p-4">
               <h4 className="mb-2 font-mono text-[11px] tracking-wide text-muted uppercase">Status</h4>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${sc!.dot}`} />
@@ -816,8 +816,8 @@ export function TaskDetail() {
               )}
             </div>
 
-            {/* Details */}
-            <div className="rounded-xl border border-border-app bg-surface p-4">
+            {}
+            <div className="rounded-lg border border-border-app bg-surface p-4">
               <h4 className="mb-3 font-mono text-[11px] tracking-wide text-muted uppercase">Details</h4>
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
@@ -879,7 +879,7 @@ export function TaskDetail() {
             </div>
 
             {/* Labels */}
-            <div className="rounded-xl border border-border-app bg-surface p-4">
+            <div className="rounded-lg border border-border-app bg-surface p-4">
               <div className="mb-2 flex items-center justify-between">
                 <h4 className="font-mono text-[11px] tracking-wide text-muted uppercase">Labels</h4>
                 <div className="relative">
@@ -887,7 +887,7 @@ export function TaskDetail() {
                   {labelPickerOpen && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setLabelPickerOpen(false)} />
-                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[180px] rounded-lg border border-border-app bg-surface py-1 shadow-lg">
+                      <div className="absolute right-0 top-full z-20 mt-1 min-w-[180px] rounded-lg border border-border-app bg-surface py-1 shadow-sm">
                         {allLabels.length === 0 ? (
                           <p className="px-3 py-2 text-xs text-muted">No labels created yet</p>
                         ) : (

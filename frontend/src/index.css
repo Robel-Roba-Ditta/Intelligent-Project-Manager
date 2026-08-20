@@ -25,10 +25,10 @@
   --font-body: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 
-  /* Surfaces - app interior (dashboard onward): white + light blue, Jira-inspired */
-  --color-canvas: #f4f7fc;
+  /* Surfaces - app interior (dashboard onward): clean neutral canvas */
+  --color-canvas: #f9fafb;
   --color-surface: #ffffff;
-  --color-topbar: #e4eefd;
+  --color-topbar: #ffffff;
   --color-brand: #0c66e4;
   --color-brand-dark: #0952b8;
   --color-brand-light: #eaf2ff;
@@ -40,7 +40,7 @@
   --color-priority-urgent: #d64545;
 
   /* add to your existing border tokens */
-  --color-border-app: #e2e8f4;
+  --color-border-app: #e5e7eb;
 }
 
 @layer base {

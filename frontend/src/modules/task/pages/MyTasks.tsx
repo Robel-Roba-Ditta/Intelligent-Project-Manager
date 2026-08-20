@@ -40,7 +40,7 @@ export function MyTasks() {
     fetchTasks();
   }, []);
 
-  // Group tasks by project
+  
   const tasksByProject = tasks.reduce((acc, task) => {
     const projectName = task.project?.name || `Project #${task.projectId}`;
     if (!acc[projectName]) acc[projectName] = [];
@@ -69,7 +69,7 @@ export function MyTasks() {
       ) : tasks.length > 0 ? (
         <div className="space-y-8">
           {Object.entries(tasksByProject).map(([projectName, projectTasks]) => (
-            <div key={projectName} className="rounded-xl border border-border-app bg-surface p-1">
+            <div key={projectName} className="rounded-lg border border-border-app bg-surface p-1">
               <div className="flex items-center gap-2 px-4 py-3">
                 <div className="h-2 w-2 rounded-full bg-brand" />
                 <h2 className="font-display text-sm font-semibold text-ink">{projectName}</h2>
@@ -122,7 +122,7 @@ export function MyTasks() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-app bg-surface p-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border-app bg-surface p-12 text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-canvas text-muted">
             <CheckSquare size={24} />
           </div>

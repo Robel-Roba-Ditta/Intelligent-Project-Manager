@@ -46,7 +46,7 @@ export class LabelService {
     throw new ForbiddenException('Only a project admin can do this');
   }
 
-  // ─── Label CRUD (project-scoped) ────────────────────────────
+  
 
   async create(projectId: number, dto: CreateLabelDto, userId: number): Promise<Label> {
     await this.assertMember(projectId, userId);
@@ -82,17 +82,14 @@ export class LabelService {
     return this.labelRepository.save(label);
   }
 
-  /**
-   * Deleting a label entirely requires admin-or-owner on the project.
-   * Cascade removes it from every task_labels join row.
-   */
+  
   async remove(id: number, userId: number): Promise<void> {
     const label = await this.findOne(id);
     await this.assertCanAdmin(label.projectId, userId);
     await this.labelRepository.remove(label);
   }
 
-  // ─── Task<->Label attach/detach ────────────────────────────
+  
 
   private async loadTaskWithLabels(taskId: number): Promise<Task> {
     const task = await this.tasksRepository.findOne({

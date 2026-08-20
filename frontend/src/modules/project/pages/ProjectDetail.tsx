@@ -51,7 +51,7 @@ export function ProjectDetail() {
 
   if (!user) return null;
 
-  // Permission checks
+  
   const currentMembership = project?.members.find((m) => m.userId === user.id);
   const isOwner = currentMembership?.role === 'owner' || user.role === 'admin';
   const isAdmin = isOwner || currentMembership?.role === 'admin';
@@ -91,7 +91,7 @@ export function ProjectDetail() {
 
   return (
     <AppShell>
-      {/* Back link */}
+      {}
       <Link
         to="/projects"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
@@ -100,7 +100,7 @@ export function ProjectDetail() {
         All projects
       </Link>
 
-      {/* Error states */}
+      {}
       {loadError && (
         <div
           role="alert"
@@ -111,7 +111,7 @@ export function ProjectDetail() {
         </div>
       )}
 
-      {/* Loading state */}
+      {}
       {!project && !loadError && (
         <div className="flex h-40 items-center justify-center">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-border-app border-t-brand" />
@@ -120,7 +120,7 @@ export function ProjectDetail() {
 
       {project && (
         <>
-          {/* Project header */}
+          {}
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2.5">
@@ -141,7 +141,7 @@ export function ProjectDetail() {
               </p>
             </div>
 
-            {/* Action buttons — visible to admins/owners */}
+            {}
             {isAdmin && (
               <div className="flex items-center gap-1.5">
                 <button
@@ -186,7 +186,7 @@ export function ProjectDetail() {
             </div>
           )}
 
-          {/* Tab bar */}
+          {}
           <div className="mb-6 flex gap-1 border-b border-border-app">
             {([
               { key: 'overview' as Tab, label: 'Overview', icon: Settings },
@@ -216,10 +216,10 @@ export function ProjectDetail() {
             ))}
           </div>
 
-          {/* Tab content */}
+          {}
           {activeTab === 'overview' && (
             <div className="space-y-4">
-              <div className="rounded-xl border border-border-app bg-surface p-5">
+              <div className="rounded-lg border border-border-app bg-surface p-5">
                 <h3 className="mb-3 font-display text-sm font-semibold text-ink">Project details</h3>
                 <dl className="space-y-3 text-sm">
                   <div className="flex gap-3">

@@ -1,13 +1,3 @@
-/**
- * Activity Log End-to-End Test Suite
- *
- * Tests:
- * - Perform 4 distinct actions in order: status change, assignee change, comment, time log
- * - Confirm all 4 activity entries appear in the correct order
- * - Each entry correctly describes what happened (not generic)
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
 import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
@@ -17,23 +7,19 @@ import { createComment } from '../modules/comment/api/commentsApi';
 import { createTimeLog } from '../modules/time-log/api/timeLogsApi';
 import { updateTask } from '../modules/task/api/tasksApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let token1: string;
 let user2: AuthUser;
 let task: TaskDto;
 let activity: ActivityLogDto[];
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
-  // Register two users
   const res1 = await registerRequest({
     email: uniqueEmail('activity-u1'),
     password: 'password123',
@@ -54,28 +40,21 @@ beforeAll(async () => {
 
   task = await createTask(project.id, { title: 'Activity Target Task' });
 
-  // Small delays to ensure ordering
-  // Action 1: status change
   await changeTaskStatus(task.id, 'IN_PROGRESS');
   await new Promise((r) => setTimeout(r, 100));
 
-  // Action 2: assignee change
   await updateTask(task.id, { assigneeId: user2.id });
   await new Promise((r) => setTimeout(r, 100));
 
-  // Action 3: comment
   await createComment(task.id, 'Test activity comment');
   await new Promise((r) => setTimeout(r, 100));
 
-  // Action 4: time log
   await createTimeLog(task.id, { hours: 2, date: '2026-06-01' });
   await new Promise((r) => setTimeout(r, 100));
 
-  // Fetch activity
   activity = await listActivity(task.id);
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Activity Log', () => {
   it('all 4 activity entries appear', () => {

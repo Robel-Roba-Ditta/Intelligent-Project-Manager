@@ -5,7 +5,7 @@ export function WeeklyTrendChart({ data }: { data: WeeklyTrendPoint[] }) {
   const totalCompleted = data.reduce((sum, d) => sum + d.completed, 0);
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <h3 className="font-display text-base font-semibold text-ink">Completed this week</h3>
       <p className="text-sm text-muted">{totalCompleted} tasks closed across the team</p>
 

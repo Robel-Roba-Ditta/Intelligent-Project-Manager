@@ -25,7 +25,7 @@ export class NotificationListener {
 
   @OnEvent('task.assignee_changed')
   async onAssigneeChanged(event: TaskAssigneeChangedEvent) {
-    // Notify the new assignee (skip if they assigned it to themselves)
+    
     if (!event.toAssigneeId || event.toAssigneeId === event.actorId) return;
 
     const task = await this.tasksRepo.findOne({ where: { id: event.taskId } });
@@ -43,7 +43,7 @@ export class NotificationListener {
       }),
     );
 
-    // Push via WebSocket
+    
     this.gateway.server
       .to(`user:${event.toAssigneeId}`)
       .emit('notification', saved);
@@ -58,7 +58,7 @@ export class NotificationListener {
     const actorName = actor?.fullName || 'Someone';
     const msg = `${actorName} changed "${task.title}" from ${event.fromStatus} to ${event.toStatus}`;
 
-    // Collect recipients: task assignee + all watchers, excluding the actor
+    
     const recipientIds = new Set<number>();
 
     if (task.assigneeId && task.assigneeId !== event.actorId) {
@@ -84,7 +84,7 @@ export class NotificationListener {
     if (notifications.length > 0) {
       const saved = await this.notifRepo.save(notifications);
 
-      // Push each notification via WebSocket to the respective user
+      
       for (const notif of saved) {
         this.gateway.server
           .to(`user:${notif.userId}`)

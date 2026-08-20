@@ -34,7 +34,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
   const [busy, setBusy] = useState(false);
   const [expandedBurndown, setExpandedBurndown] = useState<number | null>(null);
 
-  // Form state
+  
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState('');
@@ -151,7 +151,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
         )}
       </div>
 
-      {/* Error alert */}
+      {}
       {error && (
         <div
           role="alert"
@@ -162,9 +162,9 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
-      {/* Create / Edit form */}
+      {}
       {showForm && (
-        <div className="rounded-xl border border-border-app bg-surface p-5">
+        <div className="rounded-lg border border-border-app bg-surface p-5">
           <div className="mb-3 flex items-center justify-between">
             <h4 className="font-display text-sm font-semibold text-ink">
               {editingId ? 'Edit Sprint' : 'New Sprint'}
@@ -186,7 +186,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Sprint name"
-                className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
@@ -199,7 +199,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
                 onChange={(e) => setGoal(e.target.value)}
                 placeholder="What should this sprint achieve?"
                 rows={2}
-                className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <button
@@ -213,9 +213,9 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
-      {/* Sprints list */}
+      {}
       {sprints.length === 0 && !showForm ? (
-        <div className="rounded-xl border border-dashed border-border-app py-10 text-center">
+        <div className="rounded-lg border border-dashed border-border-app py-10 text-center">
           <p className="text-sm text-muted">No sprints yet. Create one to get started.</p>
         </div>
       ) : (
@@ -225,7 +225,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
             return (
               <div
                 key={sprint.id}
-                className="rounded-xl border border-border-app bg-surface p-4 transition-colors hover:border-border-light"
+                className="rounded-lg border border-border-app bg-surface p-4 transition-colors hover:border-border-light"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -293,7 +293,7 @@ export function SprintsPanel({ projectId }: { projectId: number }) {
                   </div>
                 </div>
 
-                {/* Burndown toggle for active/completed sprints */}
+                {}
                 {(sprint.status === 'ACTIVE' || sprint.status === 'COMPLETED') && (
                   <div>
                     <button

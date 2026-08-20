@@ -91,19 +91,16 @@ describe('NotificationListener', () => {
       await listener.onStatusChanged(event);
 
       expect(notifRepo.save).toHaveBeenCalled();
-      // The notifications array should include assignee (10), not actor (5)
       const savedNotifs = notifRepo.save.mock.calls[0][0];
       expect(savedNotifs).toHaveLength(1);
       expect(savedNotifs[0].userId).toBe(10);
     });
 
     it('does NOT include actor in recipients (actor excluded)', async () => {
-      // Actor is also the assignee — should NOT get a notification
       tasksRepo.findOne.mockResolvedValue({ id: 1, title: 'Test', assigneeId: 5 });
       const event = new TaskStatusChangedEvent(1, 5, 'TODO', 'IN_PROGRESS');
       await listener.onStatusChanged(event);
 
-      // No recipients remain after excluding actor
       expect(notifRepo.save).not.toHaveBeenCalled();
     });
 
@@ -111,17 +108,17 @@ describe('NotificationListener', () => {
       watchersRepo.find.mockResolvedValue([
         { userId: 20, taskId: 1 },
         { userId: 30, taskId: 1 },
-        { userId: 5, taskId: 1 }, // actor — should be excluded
+        { userId: 5, taskId: 1 }, 
       ]);
       const event = new TaskStatusChangedEvent(1, 5, 'TODO', 'IN_PROGRESS');
       await listener.onStatusChanged(event);
 
       const savedNotifs = notifRepo.save.mock.calls[0][0];
       const recipientIds = savedNotifs.map((n: any) => n.userId);
-      expect(recipientIds).toContain(10); // assignee
+      expect(recipientIds).toContain(10); 
       expect(recipientIds).toContain(20);
       expect(recipientIds).toContain(30);
-      expect(recipientIds).not.toContain(5); // actor excluded
+      expect(recipientIds).not.toContain(5); 
     });
   });
 });

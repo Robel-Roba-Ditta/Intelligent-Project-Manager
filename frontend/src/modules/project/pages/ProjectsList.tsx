@@ -123,7 +123,7 @@ export function ProjectsList() {
       {loadError && (
         <div
           role="alert"
-          className="mb-5 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger"
+          className="mb-5 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger"
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" />
           <span>{loadError}</span>
@@ -137,7 +137,7 @@ export function ProjectsList() {
       )}
 
       {projects !== null && visibleProjects.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-app py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border-app py-16 text-center">
           <FolderKanban size={28} className="text-muted" />
           <p className="mt-3 text-sm font-medium text-ink">
             {filter === 'all' ? 'No projects yet' : `No ${filter} projects`}

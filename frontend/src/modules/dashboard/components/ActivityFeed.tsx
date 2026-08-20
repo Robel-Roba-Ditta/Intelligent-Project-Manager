@@ -11,7 +11,7 @@ const ACTION_META = {
 
 export function ActivityFeed({ items }: { items: ActivityItem[] }) {
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <h3 className="font-display text-base font-semibold text-ink">Recent activity</h3>
 
       <ul className="mt-4 space-y-4">

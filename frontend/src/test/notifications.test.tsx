@@ -1,13 +1,3 @@
-/**
- * Notifications End-to-End Test Suite
- *
- * Tests:
- * - User1 assigns task to User2 → User2 gets 'assigned' notification
- * - Status change notifies assignee + watcher, excludes actor
- * - Mark read + mark all read
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest } from '../common/lib/api';
 import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
@@ -15,13 +5,11 @@ import { createTask, updateTask, changeTaskStatus, type TaskDto } from '../modul
 import { watchTask } from '../modules/watcher/api/watchersApi';
 import { listNotifications, markNotificationRead, markAllNotificationsRead } from '../modules/notification/api/notificationsApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let token1: string;
 let token2: string;
@@ -30,10 +18,8 @@ let user2Id: number;
 let projectId: number;
 let task: TaskDto;
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
-  // Register 3 users
   const res1 = await registerRequest({
     email: uniqueEmail('notif-u1'),
     password: 'password123',
@@ -56,29 +42,23 @@ beforeAll(async () => {
   });
   token3 = res3.accessToken;
 
-  // User1 creates project and adds user2 + user3
   setToken(token1);
   const project = await createProject({ name: 'Notification Test Project' });
   projectId = project.id;
   await addProjectMember(projectId, { email: res2.user.email, role: 'member' });
   await addProjectMember(projectId, { email: res3.user.email, role: 'member' });
 
-  // Create a task
   task = await createTask(projectId, { title: 'Notif Test Task' });
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Notifications', () => {
   it('assigning a task to user2 creates an "assigned" notification for user2', async () => {
-    // User1 assigns task to user2
     setToken(token1);
     await updateTask(task.id, { assigneeId: user2Id });
 
-    // Small delay for async event
     await new Promise((r) => setTimeout(r, 200));
 
-    // Check user2's notifications
     setToken(token2);
     const data = await listNotifications();
     const assignedNotifs = data.notifications.filter(
@@ -90,17 +70,14 @@ describe('Notifications', () => {
   });
 
   it('status change notifies assignee (user2) and watcher (user3), excludes actor (user1)', async () => {
-    // User3 watches the task
     setToken(token3);
     await watchTask(task.id);
 
-    // User1 changes status
     setToken(token1);
     await changeTaskStatus(task.id, 'IN_PROGRESS');
 
     await new Promise((r) => setTimeout(r, 200));
 
-    // User2 (assignee) should get a status_changed notification
     setToken(token2);
     const data2 = await listNotifications();
     const statusNotifs2 = data2.notifications.filter(
@@ -109,7 +86,6 @@ describe('Notifications', () => {
     expect(statusNotifs2.length).toBeGreaterThanOrEqual(1);
     expect(statusNotifs2[0].message).toContain('IN_PROGRESS');
 
-    // User3 (watcher) should also get a status_changed notification
     setToken(token3);
     const data3 = await listNotifications();
     const statusNotifs3 = data3.notifications.filter(
@@ -117,7 +93,6 @@ describe('Notifications', () => {
     );
     expect(statusNotifs3.length).toBeGreaterThanOrEqual(1);
 
-    // User1 (actor) should NOT get a status_changed notification for this task
     setToken(token1);
     const data1 = await listNotifications();
     const statusNotifs1 = data1.notifications.filter(

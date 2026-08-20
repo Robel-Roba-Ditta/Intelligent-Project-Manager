@@ -1,34 +1,20 @@
-/**
- * Dashboard End-to-End Test Suite
- *
- * Tests:
- * - tasksByStatus matches exact seeded counts
- * - teamWorkload matches exact seeded assignee distribution
- * - stats reflect known data
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest, api } from '../common/lib/api';
 import { createProject, addProjectMember } from '../modules/project/api/projectsApi';
 import { createTask } from '../modules/task/api/tasksApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let token1: string;
 let user1Id: number;
 let user2Id: number;
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
-  // Register two users
   const res1 = await registerRequest({
     email: uniqueEmail('dash-u1'),
     password: 'password123',
@@ -48,24 +34,19 @@ beforeAll(async () => {
   const project = await createProject({ name: 'Dashboard Test Project' });
   await addProjectMember(project.id, { email: res2.user.email, role: 'member' });
 
-  // Seed exactly: 3 TODO, 2 IN_PROGRESS, 1 DONE
-  // Assignee distribution: user1 gets 3, user2 gets 2, 1 unassigned
   await createTask(project.id, { title: 'DT1', status: 'TODO', priority: 'LOW', assigneeId: user1Id });
   await createTask(project.id, { title: 'DT2', status: 'TODO', priority: 'MEDIUM', assigneeId: user1Id });
   await createTask(project.id, { title: 'DT3', status: 'TODO', priority: 'HIGH', assigneeId: user2Id });
   await createTask(project.id, { title: 'DT4', status: 'IN_PROGRESS', priority: 'HIGH', assigneeId: user1Id });
   await createTask(project.id, { title: 'DT5', status: 'IN_PROGRESS', priority: 'MEDIUM', assigneeId: user2Id });
-  await createTask(project.id, { title: 'DT6', status: 'DONE', priority: 'LOW' }); // unassigned
+  await createTask(project.id, { title: 'DT6', status: 'DONE', priority: 'LOW' }); 
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Dashboard', () => {
   it('tasksByStatus matches exact seeded counts', async () => {
     setToken(token1);
     const { data } = await api.get('/dashboard');
-    // 3 TODO, 2 IN_PROGRESS, 0 IN_REVIEW, 1 DONE
-    // But other tests may have created tasks in other projects — we care about at-least
     expect(data.tasksByStatus.todo).toBeGreaterThanOrEqual(3);
     expect(data.tasksByStatus.in_progress).toBeGreaterThanOrEqual(2);
     expect(typeof data.tasksByStatus.in_review).toBe('number');
@@ -77,12 +58,10 @@ describe('Dashboard', () => {
     const { data } = await api.get('/dashboard');
     const workload: { memberName: string; assignedTaskCount: number }[] = data.teamWorkload;
 
-    // user1 (Dashboard Owner) has at least 3 open tasks (DT1, DT2, DT4)
     const u1 = workload.find((w) => w.memberName === 'Dashboard Owner');
     expect(u1).toBeDefined();
     expect(u1!.assignedTaskCount).toBeGreaterThanOrEqual(3);
 
-    // user2 (Dashboard Worker) has at least 2 open tasks (DT3, DT5)
     const u2 = workload.find((w) => w.memberName === 'Dashboard Worker');
     expect(u2).toBeDefined();
     expect(u2!.assignedTaskCount).toBeGreaterThanOrEqual(2);
@@ -91,7 +70,6 @@ describe('Dashboard', () => {
   it('stats.openTasks counts non-DONE tasks', async () => {
     setToken(token1);
     const { data } = await api.get('/dashboard');
-    // At least 5 open tasks from our seeded data
     expect(data.stats.openTasks).toBeGreaterThanOrEqual(5);
   });
 
@@ -118,7 +96,6 @@ describe('Dashboard', () => {
   it('tasksByPriority matches seeded priority distribution', async () => {
     setToken(token1);
     const { data } = await api.get('/dashboard');
-    // Seeded: 2 LOW (DT1, DT6), 2 MEDIUM (DT2, DT5), 2 HIGH (DT3, DT4), 0 URGENT
     expect(data.tasksByPriority).toBeDefined();
     expect(data.tasksByPriority.low).toBeGreaterThanOrEqual(2);
     expect(data.tasksByPriority.medium).toBeGreaterThanOrEqual(2);
@@ -129,7 +106,6 @@ describe('Dashboard', () => {
   it('sprint uses totalTasks/completedTasks (not plannedPoints/completedPoints)', async () => {
     setToken(token1);
     const { data } = await api.get('/dashboard');
-    // sprint may or may not exist depending on whether an active sprint is seeded
     if (data.sprint) {
       expect(typeof data.sprint.totalTasks).toBe('number');
       expect(typeof data.sprint.completedTasks).toBe('number');

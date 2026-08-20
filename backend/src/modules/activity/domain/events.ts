@@ -1,4 +1,3 @@
-// ─── Domain Events ──────────────────────────────────────────
 
 export class TaskStatusChangedEvent {
   constructor(

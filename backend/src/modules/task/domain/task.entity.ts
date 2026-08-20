@@ -63,7 +63,7 @@ export class Task extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true, name: 'completed_at' })
   completedAt: Date | null;
 
-  // ─── Foreign Keys ──────────────────────────────────────────
+  
 
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'project_id' })
@@ -93,7 +93,7 @@ export class Task extends BaseEntity {
   @Column({ type: 'int', nullable: true, name: 'assignee_id' })
   assigneeId: number | null;
 
-  // ─── Self-referencing subtask relationship ─────────────────
+  
 
   @ManyToOne(() => Task, (task) => task.children, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'parent_task_id' })
@@ -105,7 +105,7 @@ export class Task extends BaseEntity {
   @OneToMany(() => Task, (task) => task.parent)
   children: Task[];
 
-  // ─── Creator ───────────────────────────────────────────────
+  
 
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'created_by_id' })
@@ -114,7 +114,7 @@ export class Task extends BaseEntity {
   @Column({ name: 'created_by_id' })
   createdById: number;
 
-  // ─── Labels (many-to-many) ─────────────────────────────────
+  
 
   @ManyToMany(() => Label, { cascade: true, eager: false })
   @JoinTable({

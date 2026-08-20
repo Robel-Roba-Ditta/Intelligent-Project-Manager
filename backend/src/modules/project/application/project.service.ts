@@ -28,7 +28,7 @@ export class ProjectService {
     private readonly userService: UserService,
   ) {}
 
-  // ─── Project CRUD ───────────────────────────────────────────
+  
 
   async create(dto: CreateProjectDto, currentUserId: number): Promise<Project> {
     const project = await this.projectsRepository.save(
@@ -39,7 +39,7 @@ export class ProjectService {
       }),
     );
 
-    // Project creator becomes the OWNER
+    
     await this.membersRepository.save(
       this.membersRepository.create({
         projectId: project.id,
@@ -80,7 +80,7 @@ export class ProjectService {
 
   async setActive(id: number, isActive: boolean, currentUserId: number): Promise<Project> {
     const project = await this.findOne(id);
-    // Only the owner (or global admin) can activate/deactivate a project
+    
     await this.assertCanOwn(project, currentUserId);
 
     project.isActive = isActive;
@@ -90,20 +90,20 @@ export class ProjectService {
 
   async remove(id: number, currentUserId: number): Promise<void> {
     const project = await this.findOne(id);
-    // Only the owner (or global admin) can delete a project
+    
     await this.assertCanOwn(project, currentUserId);
     await this.projectsRepository.remove(project);
   }
 
-  // ─── Member Management ──────────────────────────────────────
+  
 
   async listMembers(projectId: number): Promise<ProjectMember[]> {
-    await this.findOne(projectId); // throws 404 if project doesn't exist
+    await this.findOne(projectId); 
     return this.membersRepository.find({
       where: { projectId },
       relations: { user: true },
       order: {
-        role: 'ASC', // owner first, then admin, then member (alphabetical)
+        role: 'ASC', 
         createdAt: 'ASC',
       },
     });
@@ -127,7 +127,7 @@ export class ProjectService {
       throw new ConflictException('That person is already a member of this project');
     }
 
-    // Only the owner can add someone directly as owner
+    
     const requestedRole = dto.role ?? ProjectRole.MEMBER;
     if (requestedRole === ProjectRole.OWNER) {
       await this.assertCanOwn(project, currentUserId);
@@ -156,12 +156,12 @@ export class ProjectService {
     const membership = project.members.find((m) => m.userId === targetUserId);
     if (!membership) throw new NotFoundException('That person is not a member of this project');
 
-    // Cannot change the owner's role (must transfer ownership explicitly)
+    
     if (membership.role === ProjectRole.OWNER) {
       throw new BadRequestException('Cannot change the owner\'s role. Transfer ownership instead.');
     }
 
-    // Only the owner can assign the owner role
+    
     if (dto.role === ProjectRole.OWNER) {
       await this.assertCanOwn(project, currentUserId);
     }
@@ -180,7 +180,7 @@ export class ProjectService {
     const membership = project.members.find((m) => m.userId === targetUserId);
     if (!membership) throw new NotFoundException('That person is not a member of this project');
 
-    // Cannot remove the project owner
+    
     if (membership.role === ProjectRole.OWNER) {
       throw new BadRequestException('Cannot remove the project owner');
     }
@@ -189,12 +189,9 @@ export class ProjectService {
     return this.findOne(projectId);
   }
 
-  // ─── Authorization Guards ───────────────────────────────────
+  
 
-  /**
-   * Requires the current user to be at least a project admin (owner or admin)
-   * or a global system admin. Used for: managing members, editing project details.
-   */
+  
   private async assertCanAdmin(project: Project, currentUserId: number): Promise<void> {
     const currentUser = await this.userService.findById(currentUserId);
     if (currentUser?.role === UserRole.ADMIN) return;
@@ -205,10 +202,7 @@ export class ProjectService {
     throw new ForbiddenException('Only a project admin can do this');
   }
 
-  /**
-   * Requires the current user to be the project owner or a global system admin.
-   * Used for: deactivating/deleting the project, assigning the owner role.
-   */
+  
   private async assertCanOwn(project: Project, currentUserId: number): Promise<void> {
     const currentUser = await this.userService.findById(currentUserId);
     if (currentUser?.role === UserRole.ADMIN) return;
@@ -219,9 +213,7 @@ export class ProjectService {
     throw new ForbiddenException('Only the project owner can do this');
   }
 
-  /**
-   * Prevents leaving a project without any owner.
-   */
+  
   private assertNotStrandingProject(
     project: Project,
     targetUserId: number,

@@ -57,11 +57,8 @@ describe('SprintService', () => {
   describe('start', () => {
     it('sets status to ACTIVE and stamps startDate', async () => {
       const sprint = makeSprint();
-      // First findOne call (line 102) → returns the sprint
       sprintRepo.findOne.mockResolvedValueOnce(sprint);
-      // Second findOne call (line 112) → no existing active
       sprintRepo.findOne.mockResolvedValueOnce(null);
-      // Third findOne call (line 124, return after save) → return updated sprint
       sprintRepo.findOne.mockResolvedValueOnce({
         ...sprint, status: SprintStatus.ACTIVE, startDate: new Date(),
       });
@@ -82,8 +79,8 @@ describe('SprintService', () => {
       const sprint = makeSprint();
       const activeSprint = makeSprint({ id: 2, status: SprintStatus.ACTIVE });
       sprintRepo.findOne
-        .mockResolvedValueOnce(sprint)      // findOne for our sprint
-        .mockResolvedValueOnce(activeSprint); // existing active check
+        .mockResolvedValueOnce(sprint)      
+        .mockResolvedValueOnce(activeSprint); 
 
       await expect(service.start(1, 1)).rejects.toThrow(BadRequestException);
     });
@@ -120,7 +117,7 @@ describe('SprintService', () => {
   describe('burndown ideal-line interpolation', () => {
     it('computes correct ideal values at start, midpoint, and end', async () => {
       const start = new Date('2026-08-01');
-      const end = new Date('2026-08-11'); // 10-day span
+      const end = new Date('2026-08-11'); 
       const sprint = makeSprint({
         status: SprintStatus.COMPLETED,
         startDate: start,
@@ -129,7 +126,6 @@ describe('SprintService', () => {
       sprintRepo.findOne.mockResolvedValueOnce(sprint);
       tasksRepo.count.mockResolvedValue(10);
 
-      // Mock activity query — no tasks completed
       const qb = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -143,18 +139,14 @@ describe('SprintService', () => {
       const result = await service.getBurndown(1);
 
       expect(result.totalTasks).toBe(10);
-      expect(result.days.length).toBe(11); // 10-day span → 11 data points
+      expect(result.days.length).toBe(11); 
 
-      // First day: ideal = totalTasks (10)
       expect(result.days[0].idealRemaining).toBe(10);
 
-      // Midpoint (day 5): ideal = 10 - (10 * 5/10) = 5
       expect(result.days[5].idealRemaining).toBe(5);
 
-      // Last day: ideal = 0
       expect(result.days[10].idealRemaining).toBe(0);
 
-      // Actual remaining = 10 for all days (no completions)
       for (const day of result.days) {
         expect(day.actualRemaining).toBe(10);
       }

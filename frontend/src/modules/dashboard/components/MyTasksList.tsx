@@ -18,7 +18,7 @@ const PRIORITY_STYLE: Record<TaskPriority, { label: string; className: string }>
 
 export function MyTasksList({ tasks }: { tasks: Task[] }) {
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-semibold text-ink">My tasks</h3>
         <span className="text-sm text-muted">{tasks.length} assigned</span>

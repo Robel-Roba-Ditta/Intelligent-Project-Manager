@@ -20,7 +20,7 @@ export function SprintProgressCard({ sprint }: { sprint: Sprint }) {
   const remaining = daysRemaining(sprint.endDate);
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">

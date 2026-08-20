@@ -4,7 +4,7 @@ import type { Project } from '../../../common/types/types';
 
 export function ProjectsOverview({ projects }: { projects: Project[] }) {
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-base font-semibold text-ink">Projects</h3>
         <Link

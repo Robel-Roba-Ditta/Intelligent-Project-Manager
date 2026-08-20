@@ -8,7 +8,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
-  // Fail fast if JWT_SECRET is not configured — never sign tokens with undefined
   const jwtSecret = config.get<string>('JWT_SECRET');
   if (!jwtSecret) {
     console.error('FATAL: JWT_SECRET environment variable is not set. Aborting startup.');

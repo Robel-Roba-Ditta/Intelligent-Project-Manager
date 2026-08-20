@@ -48,10 +48,9 @@ describe('avatarColorForName', () => {
 });
 
 describe('formatDueDate', () => {
-  
 
-  beforeEach(() => {
-    // Fix "today" to a known date for deterministic tests
+
+    beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-15T12:00:00'));
   });

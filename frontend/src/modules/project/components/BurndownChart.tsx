@@ -57,7 +57,7 @@ export function BurndownChart({ sprintId }: { sprintId: number }) {
     );
   }
 
-  // Format date labels to short format (e.g., "Aug 1")
+  
   const chartData = data.days.map((d) => ({
     ...d,
     label: new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', {

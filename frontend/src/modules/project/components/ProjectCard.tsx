@@ -24,7 +24,7 @@ export function ProjectCard({
   return (
     <div
       data-testid={`project-card-${project.name}`}
-      className={`rounded-xl border border-border-app bg-surface p-5 transition-opacity ${
+      className={`rounded-lg border border-border-app bg-surface p-5 transition-opacity ${
         project.isActive ? '' : 'opacity-60'
       }`}
     >

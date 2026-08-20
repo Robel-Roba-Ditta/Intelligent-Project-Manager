@@ -18,7 +18,7 @@ import {
 
 interface AuthContextValue {
   user: AuthUser | null;
-  isLoading: boolean; // true while we check for an existing saved session
+  isLoading: boolean; 
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName: string) => Promise<void>;
   logout: () => void;

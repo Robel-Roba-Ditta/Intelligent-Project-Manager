@@ -18,10 +18,7 @@ export class EpicService {
     private readonly projectService: ProjectService,
   ) {}
 
-  /**
-   * Verifies the user is a member of the given project.
-   * Any role (owner/admin/member) is sufficient for epic CRUD.
-   */
+  
   private async assertMember(projectId: number, userId: number) {
     const project = await this.projectService.findOne(projectId);
     const isMember = project.members.some((m) => m.userId === userId);
@@ -37,7 +34,7 @@ export class EpicService {
     const epic = this.epicRepository.create({
       name: dto.name,
       description: dto.description ?? null,
-      status: dto.status, // defaults via entity if undefined
+      status: dto.status, 
       projectId,
     });
     const saved = await this.epicRepository.save(epic);

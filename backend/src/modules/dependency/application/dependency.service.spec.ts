@@ -62,11 +62,10 @@ describe('DependencyService', () => {
 
   it('rejects reverse cycle (A blocks B, then B blocks A)', async () => {
     tasksRepo.findOne
-      .mockResolvedValueOnce(makeTask(2, 1))  // blocking task = 2
-      .mockResolvedValueOnce(makeTask(1, 1)); // blocked task = 1
+      .mockResolvedValueOnce(makeTask(2, 1))  
+      .mockResolvedValueOnce(makeTask(1, 1)); 
 
-    // Simulate existing dep: 1 blocks 2 already exists
-    depsRepo.findOne.mockResolvedValueOnce({ id: 99 }); // reverse found
+    depsRepo.findOne.mockResolvedValueOnce({ id: 99 }); 
 
     await expect(
       service.create(2, { blockedTaskId: 1 } as any, 1),
@@ -79,8 +78,8 @@ describe('DependencyService', () => {
       .mockResolvedValueOnce(makeTask(2, 1));
 
     depsRepo.findOne
-      .mockResolvedValueOnce(null)    // no reverse
-      .mockResolvedValueOnce({ id: 1 }); // existing duplicate
+      .mockResolvedValueOnce(null)    
+      .mockResolvedValueOnce({ id: 1 }); 
 
     await expect(
       service.create(1, { blockedTaskId: 2 } as any, 1),
@@ -93,8 +92,8 @@ describe('DependencyService', () => {
       .mockResolvedValueOnce(makeTask(2, 1));
 
     depsRepo.findOne
-      .mockResolvedValueOnce(null) // no reverse
-      .mockResolvedValueOnce(null); // no duplicate
+      .mockResolvedValueOnce(null) 
+      .mockResolvedValueOnce(null); 
 
     const result = await service.create(1, { blockedTaskId: 2 } as any, 1);
     expect(depsRepo.save).toHaveBeenCalled();

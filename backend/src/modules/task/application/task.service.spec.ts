@@ -51,15 +51,12 @@ describe('TaskService — status transitions', () => {
     } as any;
   }
 
-  // Helper to call changeStatus — sets up findOne to return the task both
-  // for the initial fetch and the re-fetch after save
   async function changeStatus(from: TaskStatus, to: TaskStatus) {
     const task = makeTask(from);
     taskRepo.findOne.mockResolvedValue(task);
     return service.changeStatus(task.id, to, 1);
   }
 
-  // ─── Legal transitions ────────────────────────────────────
 
   it('TODO → IN_PROGRESS is allowed', async () => {
     const result = await changeStatus(TaskStatus.TODO, TaskStatus.IN_PROGRESS);
@@ -91,7 +88,6 @@ describe('TaskService — status transitions', () => {
     expect(result.status).toBe(TaskStatus.IN_REVIEW);
   });
 
-  // ─── Illegal transitions ──────────────────────────────────
 
   it('TODO → DONE is rejected', async () => {
     await expect(changeStatus(TaskStatus.TODO, TaskStatus.DONE)).rejects.toThrow(BadRequestException);
@@ -113,7 +109,6 @@ describe('TaskService — status transitions', () => {
     await expect(changeStatus(TaskStatus.IN_PROGRESS, TaskStatus.DONE)).rejects.toThrow(BadRequestException);
   });
 
-  // ─── No-op ────────────────────────────────────────────────
 
   it('same status is a no-op (returns unchanged task)', async () => {
     const task = makeTask(TaskStatus.TODO);
@@ -123,7 +118,6 @@ describe('TaskService — status transitions', () => {
     expect(taskRepo.save).not.toHaveBeenCalled();
   });
 
-  // ─── completedAt behavior ──────────────────────────────────
 
   it('stamps completedAt when moving to DONE', async () => {
     const task = makeTask(TaskStatus.IN_REVIEW);
@@ -140,7 +134,6 @@ describe('TaskService — status transitions', () => {
     expect(task.completedAt).toBeNull();
   });
 
-  // ─── Event emission ────────────────────────────────────────
 
   it('emits task.status_changed event on legal transition', async () => {
     const task = makeTask(TaskStatus.TODO);

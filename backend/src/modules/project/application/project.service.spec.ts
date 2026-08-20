@@ -7,7 +7,6 @@ import { ProjectMember, ProjectRole } from '../domain/project-member.entity';
 import { UserService } from '../../user/application/user.service';
 import { UserRole } from '../../user/domain/user.entity';
 
-// ─── Helpers ──────────────────────────────────────────────
 
 function makeMember(userId: number, role: ProjectRole): Partial<ProjectMember> {
   return { userId, role } as any;
@@ -39,10 +38,8 @@ describe('ProjectService — authorization guards', () => {
     service = module.get<ProjectService>(ProjectService);
   });
 
-  // ─── assertCanAdmin (private — test indirectly via update) ───
 
   describe('assertCanAdmin', () => {
-    // Access private method for isolated testing
     const callAssertCanAdmin = (svc: any, project: any, userId: number) =>
       svc.assertCanAdmin(project, userId);
 

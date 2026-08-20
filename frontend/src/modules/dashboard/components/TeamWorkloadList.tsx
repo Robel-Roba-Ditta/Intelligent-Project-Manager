@@ -5,7 +5,7 @@ export function TeamWorkloadList({ workload }: { workload: TeamWorkload[] }) {
   const max = Math.max(...workload.map((w) => w.assignedTaskCount), 1);
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <h3 className="font-display text-base font-semibold text-ink">Team workload</h3>
       <p className="text-sm text-muted">Open tasks per person</p>
 

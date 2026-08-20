@@ -40,7 +40,7 @@ export class NotificationGateway
         return;
       }
 
-      // Join user-specific room
+      
       client.join(`user:${payload.sub}`);
       client.data.userId = payload.sub;
     } catch {
@@ -49,6 +49,6 @@ export class NotificationGateway
   }
 
   handleDisconnect(_client: Socket) {
-    // Cleanup handled automatically by Socket.IO
+    
   }
 }

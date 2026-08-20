@@ -54,7 +54,7 @@ export function ProjectFormModal({
       {error && (
         <div
           role="alert"
-          className="mb-4 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger"
+          className="mb-4 flex items-start gap-2 rounded-md border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm text-danger"
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" />
           <span>{error}</span>
@@ -86,7 +86,7 @@ export function ProjectFormModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What's this project about? (optional)"
-            className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-accent-done focus:outline-none focus:ring-2 focus:ring-accent-done/40"
+            className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-accent-done focus:outline-none focus:ring-2 focus:ring-accent-done/40"
           />
         </div>
 

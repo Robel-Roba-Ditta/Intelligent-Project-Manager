@@ -21,7 +21,7 @@ export function StatCard({
   };
 
   return (
-    <div className="rounded-xl border border-border-app bg-surface p-5">
+    <div className="rounded-lg border border-border-app bg-surface p-5">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted">{label}</p>
         <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${toneClasses[tone]}`}>

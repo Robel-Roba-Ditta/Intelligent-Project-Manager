@@ -158,13 +158,13 @@ export function MembersModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="teammate@example.com"
-              className="w-full rounded-lg border border-border-light bg-white px-3 py-1.5 text-sm text-ink placeholder:text-muted/60 focus:border-accent-done focus:outline-none focus:ring-2 focus:ring-accent-done/40"
+              className="w-full rounded-md border border-border-light bg-white px-3 py-1.5 text-sm text-ink placeholder:text-muted/60 focus:border-accent-done focus:outline-none focus:ring-2 focus:ring-accent-done/40"
             />
           </div>
           <select
             value={newRole}
             onChange={(e) => setNewRole(e.target.value as ProjectMemberRole)}
-            className="rounded-lg border border-border-light bg-white px-2 py-[7px] text-sm text-ink"
+            className="rounded-md border border-border-light bg-white px-2 py-[7px] text-sm text-ink"
           >
             <option value="member">Member</option>
             <option value="admin">Admin</option>

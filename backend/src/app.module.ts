@@ -53,10 +53,10 @@ import { SearchModule } from './modules/search/search.module';
           Comment, Attachment, Watcher,
           ActivityLog, TimeLog, TaskDependency, Notification,
         ],
-        // synchronize: true auto-creates/alters tables based on entities.
-        // NEVER enable in production — use TypeORM migrations instead
-        // (typeorm migration:generate / migration:run).
-        // For local development, set NODE_ENV to anything other than 'production'.
+        
+        
+        
+        
         synchronize: config.get('NODE_ENV') !== 'production',
       }),
     }),

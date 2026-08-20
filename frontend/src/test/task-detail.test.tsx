@@ -1,15 +1,3 @@
-/**
- * Task Detail End-to-End Test Suite
- *
- * Tests:
- * - Task has all fields populated (title, description, status, priority, type, etc.)
- * - Status change via changeTaskStatus (workflow endpoint)
- * - Priority and assignee update via updateTask (generic endpoint)
- * - Subtask creation and parent-child link
- * - Labels attach from detail view
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest, type AuthUser } from '../common/lib/api';
 import {
@@ -28,13 +16,11 @@ import {
 } from '../modules/task/api/tasksApi';
 import { createLabel, attachLabel, type LabelDto } from '../modules/label/api/labelsApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let user1: AuthUser;
 let user2: AuthUser;
@@ -45,7 +31,6 @@ let sprint: SprintDto;
 let task: TaskDto;
 let label: LabelDto;
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
   const res1 = await registerRequest({
@@ -84,7 +69,6 @@ beforeAll(async () => {
   label = await createLabel(project.id, { name: 'DetailLabel', color: '#8b5cf6' });
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Task Detail — fields, edits, subtasks', () => {
   it('fetched task has all fields populated', () => {
@@ -137,7 +121,6 @@ describe('Task Detail — fields, edits, subtasks', () => {
     });
     expect(subtask.parentTaskId).toBe(task.id);
 
-    // Re-fetch parent
     const parent = await getTask(task.id);
     expect(parent.children.length).toBeGreaterThanOrEqual(1);
     const found = parent.children.find((c) => c.id === subtask.id);
@@ -155,7 +138,6 @@ describe('Task Detail — fields, edits, subtasks', () => {
 
   it('changes are reflected when re-fetching the task', async () => {
     const fresh = await getTask(task.id);
-    // All the mutations from previous tests should be persisted
     expect(fresh.status).toBe('DONE');
     expect(fresh.priority).toBe('LOW');
     expect(fresh.assignee!.fullName).toBe('Detail User Two');

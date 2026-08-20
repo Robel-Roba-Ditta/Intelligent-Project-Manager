@@ -55,15 +55,15 @@ export function TasksPanel({ projectId }: { projectId: number }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // View mode
+  
   const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
-  // Label management state
+  
   const [showLabelManager, setShowLabelManager] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#0C66E4');
 
-  // Form state
+  
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -220,12 +220,12 @@ export function TasksPanel({ projectId }: { projectId: number }) {
     }
   }
 
-  // Group top-level tasks (those without a parent, or whose parent is deleted)
+  
   const topLevelTasks = tasks.filter((t) => !t.parentTaskId);
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h3 className="font-display text-sm font-semibold text-ink">
@@ -252,9 +252,9 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         )}
       </div>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border-app bg-surface px-4 py-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-sm">
+      {}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border-app bg-surface px-4 py-3">
+        <div className="flex items-center gap-2 rounded-md border border-border-light bg-white px-2.5 py-1.5 text-sm">
           <Search size={14} className="text-muted" />
           <input
             type="text"
@@ -265,25 +265,25 @@ export function TasksPanel({ projectId }: { projectId: number }) {
             className="w-28 bg-transparent text-xs text-ink placeholder:text-muted/60 focus:outline-none sm:w-40"
           />
         </div>
-        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status" className="rounded-md border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
           <option value="">All statuses</option>
           <option value="TODO">To Do</option>
           <option value="IN_PROGRESS">In Progress</option>
           <option value="IN_REVIEW">In Review</option>
           <option value="DONE">Done</option>
         </select>
-        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} aria-label="Filter by priority" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+        <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} aria-label="Filter by priority" className="rounded-md border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
           <option value="">All priorities</option>
           <option value="LOW">Low</option>
           <option value="MEDIUM">Medium</option>
           <option value="HIGH">High</option>
           <option value="URGENT">Urgent</option>
         </select>
-        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} aria-label="Filter by assignee" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+        <select value={filterAssignee} onChange={(e) => setFilterAssignee(e.target.value)} aria-label="Filter by assignee" className="rounded-md border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
           <option value="">All assignees</option>
           {members.map((m) => <option key={m.userId} value={m.userId}>{m.user.fullName}</option>)}
         </select>
-        <select value={filterSprint} onChange={(e) => setFilterSprint(e.target.value)} aria-label="Filter by sprint" className="rounded-lg border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
+        <select value={filterSprint} onChange={(e) => setFilterSprint(e.target.value)} aria-label="Filter by sprint" className="rounded-md border border-border-light bg-white px-2.5 py-1.5 text-xs text-ink">
           <option value="">All sprints</option>
           {sprints.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
@@ -329,7 +329,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         </button>
       </div>
 
-      {/* Error */}
+      {}
       {error && (
         <div
           role="alert"
@@ -340,9 +340,9 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
-      {/* Label Manager */}
+      {}
       {showLabelManager && (
-        <div className="rounded-xl border border-border-app bg-surface p-5">
+        <div className="rounded-lg border border-border-app bg-surface p-5">
           <div className="mb-3 flex items-center justify-between">
             <h4 className="font-display text-sm font-semibold text-ink">Project Labels</h4>
             <button type="button" onClick={() => setShowLabelManager(false)} className="text-muted hover:text-ink">
@@ -359,7 +359,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
                 value={newLabelName}
                 onChange={(e) => setNewLabelName(e.target.value)}
                 placeholder="Label name"
-                className="w-full rounded-lg border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <div>
@@ -369,7 +369,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
                 type="color"
                 value={newLabelColor}
                 onChange={(e) => setNewLabelColor(e.target.value)}
-                className="h-[38px] w-12 cursor-pointer rounded-lg border border-border-light bg-white"
+                className="h-[38px] w-12 cursor-pointer rounded-md border border-border-light bg-white"
               />
             </div>
             <button
@@ -406,9 +406,9 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
-      {/* Create form */}
+      {}
       {showForm && (
-        <div className="rounded-xl border border-border-app bg-surface p-5">
+        <div className="rounded-lg border border-border-app bg-surface p-5">
           <div className="mb-3 flex items-center justify-between">
             <h4 className="font-display text-sm font-semibold text-ink">New Task</h4>
             <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="text-muted hover:text-ink">
@@ -416,7 +416,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
             </button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Title */}
+            {}
             <div>
               <label htmlFor="task-title" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Title</label>
               <input
@@ -427,10 +427,10 @@ export function TasksPanel({ projectId }: { projectId: number }) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Task title"
-                className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
-            {/* Description */}
+            {}
             <div>
               <label htmlFor="task-desc" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Description</label>
               <textarea
@@ -439,14 +439,14 @@ export function TasksPanel({ projectId }: { projectId: number }) {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
                 placeholder="Optional description"
-                className="w-full rounded-lg border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-md border border-border-light bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
-            {/* Row: Status, Priority, Type */}
+            {}
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="task-status" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Status</label>
-                <select id="task-status" value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-status" value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="TODO">To Do</option>
                   <option value="IN_PROGRESS">In Progress</option>
                   <option value="IN_REVIEW">In Review</option>
@@ -455,7 +455,7 @@ export function TasksPanel({ projectId }: { projectId: number }) {
               </div>
               <div>
                 <label htmlFor="task-priority" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Priority</label>
-                <select id="task-priority" value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-priority" value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Medium</option>
                   <option value="HIGH">High</option>
@@ -464,32 +464,32 @@ export function TasksPanel({ projectId }: { projectId: number }) {
               </div>
               <div>
                 <label htmlFor="task-type" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Type</label>
-                <select id="task-type" value={type} onChange={(e) => setType(e.target.value as TaskType)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-type" value={type} onChange={(e) => setType(e.target.value as TaskType)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="TASK">Task</option>
                   <option value="BUG">Bug</option>
                   <option value="STORY">Story</option>
                 </select>
               </div>
             </div>
-            {/* Row: Epic, Sprint, Assignee */}
+            {}
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="task-epic" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Epic</label>
-                <select id="task-epic" value={epicId} onChange={(e) => setEpicId(e.target.value)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-epic" value={epicId} onChange={(e) => setEpicId(e.target.value)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="">None</option>
                   {epics.map((ep) => <option key={ep.id} value={ep.id}>{ep.name}</option>)}
                 </select>
               </div>
               <div>
                 <label htmlFor="task-sprint" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Sprint</label>
-                <select id="task-sprint" value={sprintId} onChange={(e) => setSprintId(e.target.value)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-sprint" value={sprintId} onChange={(e) => setSprintId(e.target.value)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="">None</option>
                   {sprints.map((sp) => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </select>
               </div>
               <div>
                 <label htmlFor="task-assignee" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Assignee</label>
-                <select id="task-assignee" value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-assignee" value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="">Unassigned</option>
                   {members.map((m) => <option key={m.userId} value={m.userId}>{m.user.fullName}</option>)}
                 </select>
@@ -499,11 +499,11 @@ export function TasksPanel({ projectId }: { projectId: number }) {
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label htmlFor="task-sp" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Story Points</label>
-                <input id="task-sp" type="number" min={0} value={storyPoints} onChange={(e) => setStoryPoints(e.target.value)} placeholder="—" className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink" />
+                <input id="task-sp" type="number" min={0} value={storyPoints} onChange={(e) => setStoryPoints(e.target.value)} placeholder="—" className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink" />
               </div>
               <div>
                 <label htmlFor="task-parent" className="mb-1.5 block font-mono text-[11px] tracking-wide text-muted uppercase">Parent Task</label>
-                <select id="task-parent" value={parentTaskId} onChange={(e) => setParentTaskId(e.target.value)} className="w-full rounded-lg border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
+                <select id="task-parent" value={parentTaskId} onChange={(e) => setParentTaskId(e.target.value)} className="w-full rounded-md border border-border-light bg-white px-3 py-[9px] text-sm text-ink">
                   <option value="">None (top-level)</option>
                   {tasks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
                 </select>
@@ -520,20 +520,20 @@ export function TasksPanel({ projectId }: { projectId: number }) {
         </div>
       )}
 
-      {/* Board view */}
+      {}
       {viewMode === 'board' && (
         <BoardView projectId={projectId} />
       )}
 
-      {/* Tasks list */}
+      {}
       {viewMode === 'list' && (
         <>
           {tasks.length === 0 && !showForm ? (
-            <div className="rounded-xl border border-dashed border-border-app py-10 text-center">
+            <div className="rounded-lg border border-dashed border-border-app py-10 text-center">
               <p className="text-sm text-muted">No tasks yet. Create one to get started.</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-border-app bg-surface">
+            <div className="rounded-lg border border-border-app bg-surface">
               <ul className="divide-y divide-border-app">
                 {topLevelTasks.map((task) => (
                   <TaskRow key={task.id} task={task} allTasks={tasks} allLabels={labels} onDelete={handleDelete} onAttachLabel={handleAttachLabel} onDetachLabel={handleDetachLabel} busy={busy} depth={0} />
@@ -603,7 +603,7 @@ function TaskRow({
             {task.sprint && <span>Sprint: {task.sprint.name}</span>}
             {task.storyPoints != null && <span>{task.storyPoints} pts</span>}
           </div>
-          {/* Label chips */}
+          {}
           {task.labels.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {task.labels.map((label) => (
@@ -636,7 +636,7 @@ function TaskRow({
           {pc.label}
         </span>
         <span className="text-[10px] font-medium text-muted">{sc.label}</span>
-        {/* Label attach button */}
+        {}
         <div className="relative">
           <button
             type="button"
@@ -647,7 +647,7 @@ function TaskRow({
             <Tag size={14} />
           </button>
           {showLabelPicker && unattachedLabels.length > 0 && (
-            <div className="absolute right-0 top-full z-10 mt-1 w-40 rounded-lg border border-border-app bg-surface p-1 shadow-lg">
+            <div className="absolute right-0 top-full z-10 mt-1 w-40 rounded-lg border border-border-app bg-surface p-1 shadow-sm">
               {unattachedLabels.map((label) => (
                 <button
                   key={label.id}

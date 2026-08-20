@@ -1,13 +1,3 @@
-/**
- * Attachments End-to-End Test Suite
- *
- * Tests:
- * - Add an attachment with a known URL
- * - Confirm it appears in the list
- * - Confirm the returned data has the correct href (fileUrl)
- *
- * Requires the backend to be running on http://localhost:3000.
- */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { setToken, registerRequest } from '../common/lib/api';
 import { createProject } from '../modules/project/api/projectsApi';
@@ -18,13 +8,11 @@ import {
   type AttachmentDto,
 } from '../modules/attachment/api/attachmentsApi';
 
-/* ─── Helpers ────────────────────────────────────────────── */
 
 function uniqueEmail(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
 }
 
-/* ─── Test State ─────────────────────────────────────────── */
 
 let token: string;
 let task: TaskDto;
@@ -33,7 +21,6 @@ let attachment: AttachmentDto;
 const TEST_FILE_NAME = 'design-spec.pdf';
 const TEST_FILE_URL = 'https://example.com/files/design-spec.pdf';
 
-/* ─── Setup ──────────────────────────────────────────────── */
 
 beforeAll(async () => {
   const res = await registerRequest({
@@ -53,7 +40,6 @@ beforeAll(async () => {
   });
 });
 
-/* ─── Tests ──────────────────────────────────────────────── */
 
 describe('Attachments', () => {
   it('attachment was created with correct data', () => {
@@ -75,7 +61,6 @@ describe('Attachments', () => {
   });
 
   it('attachment fileUrl is a real URL that can be used as an href', () => {
-    // Verify the URL is well-formed
     const url = new URL(attachment.fileUrl);
     expect(url.protocol).toBe('https:');
     expect(url.hostname).toBe('example.com');

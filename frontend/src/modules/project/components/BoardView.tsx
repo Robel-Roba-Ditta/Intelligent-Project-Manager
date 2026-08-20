@@ -132,22 +132,22 @@ export function BoardView({ projectId }: { projectId: number }) {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    // No-op if dropped on same column
+    
     if (task.status === targetStatus) return;
 
-    // Only move if it's a legal transition
+    
     const allowed = TRANSITIONS[task.status];
     if (!allowed.includes(targetStatus)) return;
 
     await handleMove(taskId, targetStatus);
   }
 
-  // Compute valid drop targets based on the dragged task
+  
   const validTargets = activeTask ? TRANSITIONS[activeTask.status] : [];
 
   return (
     <div className="space-y-4">
-      {/* Board header with labels manager toggle */}
+      {}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-sm font-semibold text-ink">Board</h3>
         <button
@@ -226,8 +226,8 @@ function DroppableColumn({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: col.status });
 
-  // Visual feedback during drag
-  let columnClasses = `flex flex-col rounded-xl border border-border-app border-t-[3px] ${col.accent} bg-canvas/50 transition-all duration-200`;
+  
+  let columnClasses = `flex flex-col rounded-lg border border-border-app border-t-[3px] ${col.accent} bg-canvas/50 transition-all duration-200`;
   if (isDragging && !isSourceColumn) {
     if (isValidTarget) {
       columnClasses += isOver
@@ -240,7 +240,7 @@ function DroppableColumn({
 
   return (
     <div ref={setNodeRef} className={columnClasses}>
-      {/* Column header */}
+      {}
       <div className={`flex items-center justify-between rounded-t-lg px-3 py-2.5 ${col.headerBg}`}>
         <h4 className="text-xs font-semibold text-ink">{col.label}</h4>
         <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-medium text-muted">
@@ -248,7 +248,7 @@ function DroppableColumn({
         </span>
       </div>
 
-      {/* Cards */}
+      {}
       <div className="flex flex-1 flex-col gap-2 p-2">
         {tasks.length === 0 && (
           <p className="py-6 text-center text-xs text-muted/60">No tasks</p>
@@ -373,7 +373,7 @@ function TaskCardWithActions({
 
   return (
     <div className="group relative rounded-lg border border-border-app bg-surface p-3 shadow-sm transition-shadow hover:shadow-md">
-      {/* Type indicator + clickable title */}
+      {}
       <div className="mb-1.5 flex items-start gap-2">
         <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold ${tc.color}`}>
           {tc.label}
@@ -387,7 +387,7 @@ function TaskCardWithActions({
         </Link>
       </div>
 
-      {/* Label chips */}
+      {}
       {task.labels && task.labels.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1 pl-7">
           {task.labels.map((label) => (
@@ -402,13 +402,13 @@ function TaskCardWithActions({
         </div>
       )}
 
-      {/* Bottom row: priority + label picker + assignee + move button */}
+      {}
       <div className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-1.5">
           <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-semibold ${pc.color}`}>
             {pc.label}
           </span>
-          {/* Label picker trigger */}
+          {}
           <div className="relative">
             <button
               type="button"
@@ -422,7 +422,7 @@ function TaskCardWithActions({
             {labelPickerOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setLabelPickerOpen(false)} />
-                <div className="absolute left-0 top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border-app bg-surface py-1 shadow-lg">
+                <div className="absolute left-0 top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border-app bg-surface py-1 shadow-sm">
                   {allLabels.length === 0 ? (
                     <p className="px-3 py-2 text-xs text-muted">No labels created yet</p>
                   ) : (
@@ -481,7 +481,7 @@ function TaskCardWithActions({
               {moveDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setMoveDropdownOpen(false)} />
-                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[120px] rounded-lg border border-border-app bg-surface py-1 shadow-lg">
+                  <div className="absolute right-0 top-full z-20 mt-1 min-w-[120px] rounded-lg border border-border-app bg-surface py-1 shadow-sm">
                     {targets.map((targetStatus) => (
                       <button
                         key={targetStatus}

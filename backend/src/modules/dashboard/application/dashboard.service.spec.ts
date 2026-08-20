@@ -25,7 +25,6 @@ describe('DashboardService — mapStatus', () => {
     service = module.get<DashboardService>(DashboardService);
   });
 
-  // Access private mapStatus method
   const callMapStatus = (svc: any, status: TaskStatus) => svc.mapStatus(status);
 
   it('maps TODO to "todo"', () => {
@@ -44,7 +43,6 @@ describe('DashboardService — mapStatus', () => {
     expect(callMapStatus(service, TaskStatus.DONE)).toBe('done');
   });
 
-  // Test emptyDashboard has 4 status keys
   it('emptyDashboard includes in_review key', () => {
     const empty = (service as any).emptyDashboard();
     expect(empty.tasksByStatus).toEqual({

@@ -34,7 +34,7 @@ export function Topbar() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Search state
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -80,7 +80,7 @@ export function Topbar() {
     }
   }, [user, fetchNotifications]);
 
-  // Debounced search
+  
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -111,7 +111,7 @@ export function Topbar() {
       if (!notif.isRead) {
         await markNotificationRead(notif.id);
       }
-    } catch { /* best-effort */ }
+    } catch {  }
     setNotifOpen(false);
     if (notif.taskId) {
       navigate(`/tasks/${notif.taskId}`);
@@ -123,7 +123,7 @@ export function Topbar() {
     try {
       await markAllNotificationsRead();
       await fetchNotifications();
-    } catch { /* best-effort */ }
+    } catch {  }
   }
 
   function handleSearchKeyDown(e: React.KeyboardEvent) {
@@ -144,10 +144,10 @@ export function Topbar() {
   const hasResults = searchResults && (searchResults.projects.length > 0 || searchResults.tasks.length > 0);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border-app bg-topbar px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border-app bg-white px-6">
       {/* Search */}
       <div className="relative flex max-w-md flex-1">
-        <div className="flex w-full items-center gap-2 rounded-lg border border-transparent bg-white/70 px-3 py-1.5 text-sm text-muted focus-within:border-brand">
+        <div className="flex w-full items-center gap-2 rounded-lg border border-transparent bg-canvas px-3 py-1.5 text-sm text-muted focus-within:border-brand">
           <Search size={15} />
           <input
             type="text"
@@ -171,7 +171,7 @@ export function Topbar() {
               className="fixed inset-0 z-10 cursor-default"
               onClick={() => setSearchOpen(false)}
             />
-            <div className="absolute top-full left-0 z-20 mt-1 w-full rounded-lg border border-border-app bg-white shadow-lg">
+            <div className="absolute top-full left-0 z-20 mt-1 w-full rounded-lg border border-border-app bg-white shadow-sm">
               {!hasResults ? (
                 <p className="px-4 py-4 text-center text-xs text-muted">No matches</p>
               ) : (
@@ -234,7 +234,7 @@ export function Topbar() {
             type="button"
             aria-label="Notifications"
             onClick={() => setNotifOpen((v) => !v)}
-            className="relative rounded-full p-2 text-ink/70 hover:bg-white/60"
+            className="relative rounded-full p-2 text-ink/70 hover:bg-canvas"
           >
             <Bell size={18} />
             {unreadCount > 0 && (
@@ -252,7 +252,7 @@ export function Topbar() {
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setNotifOpen(false)}
               />
-              <div className="absolute right-0 z-20 mt-2 w-80 rounded-lg border border-border-app bg-white shadow-lg">
+              <div className="absolute right-0 z-20 mt-2 w-80 rounded-lg border border-border-app bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-border-app px-4 py-2.5">
                   <h4 className="text-sm font-semibold text-ink">Notifications</h4>
                   {unreadCount > 0 && (
@@ -300,13 +300,13 @@ export function Topbar() {
           )}
         </div>
 
-        {/* User menu */}
+        {}
         <div className="relative">
           <button
             type="button"
             aria-label="Open user menu"
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg py-1 pr-1 pl-1.5 hover:bg-white/60"
+            className="flex items-center gap-2 rounded-lg py-1 pr-1 pl-1.5 hover:bg-canvas"
           >
             <span
               className="flex h-7 w-7 items-center justify-center rounded-full font-mono text-xs font-medium text-white"
@@ -328,7 +328,7 @@ export function Topbar() {
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-border-app bg-white py-1 shadow-lg">
+              <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-border-app bg-white py-1 shadow-sm">
                 <div className="border-b border-border-app px-3 py-2">
                   <p className="truncate text-sm font-medium text-ink">{user.fullName}</p>
                   <p className="truncate text-xs text-muted">{user.email}</p>

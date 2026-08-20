@@ -50,7 +50,7 @@ export function GlobalSprints() {
             return (
               <div
                 key={sprint.id}
-                className="flex flex-col rounded-xl border border-border-app bg-surface p-5 transition-all hover:border-brand/30 hover:shadow-sm"
+                className="flex flex-col rounded-lg border border-border-app bg-surface p-5 transition-all hover:border-brand/30 hover:shadow-sm"
               >
                 <div className="mb-4 flex items-start justify-between gap-4">
                   <div>
@@ -92,7 +92,7 @@ export function GlobalSprints() {
           })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border-app bg-surface p-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border-app bg-surface p-12 text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-canvas text-muted">
             <Rocket size={24} />
           </div>

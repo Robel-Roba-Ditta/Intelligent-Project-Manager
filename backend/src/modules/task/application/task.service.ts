@@ -55,9 +55,7 @@ export class TaskService {
     return project;
   }
 
-  /**
-   * Validates that assigneeId is a member of the given project.
-   */
+  
   private async validateAssignee(assigneeId: number, projectId: number): Promise<void> {
     const membership = await this.membersRepository.findOne({
       where: { userId: assigneeId, projectId },
@@ -69,9 +67,7 @@ export class TaskService {
     }
   }
 
-  /**
-   * Validates that an epic belongs to the same project as the task.
-   */
+  
   private async validateEpic(epicId: number, projectId: number): Promise<void> {
     const epic = await this.epicsRepository.findOne({ where: { id: epicId } });
     if (!epic) throw new NotFoundException('Epic not found');
@@ -82,9 +78,7 @@ export class TaskService {
     }
   }
 
-  /**
-   * Validates that a sprint belongs to the same project as the task.
-   */
+  
   private async validateSprint(sprintId: number, projectId: number): Promise<void> {
     const sprint = await this.sprintsRepository.findOne({ where: { id: sprintId } });
     if (!sprint) throw new NotFoundException('Sprint not found');
@@ -95,9 +89,7 @@ export class TaskService {
     }
   }
 
-  /**
-   * Runs all cross-entity validations for create/update.
-   */
+  
   private async validateRelations(
     projectId: number,
     assigneeId?: number | null,
@@ -113,7 +105,7 @@ export class TaskService {
     await this.assertMember(projectId, userId);
     await this.validateRelations(projectId, dto.assigneeId, dto.epicId, dto.sprintId);
 
-    // Validate parentTask nesting: must be in same project and not itself a subtask
+    
     if (dto.parentTaskId) {
       const parent = await this.taskRepository.findOne({ where: { id: dto.parentTaskId } });
       if (!parent) throw new NotFoundException('Parent task not found');
@@ -201,7 +193,7 @@ export class TaskService {
     return this.taskRepository.find({
       where: { assigneeId: userId, isDeleted: false },
       relations: TASK_RELATIONS,
-      order: { dueDate: 'ASC', createdAt: 'DESC' }, // Show nearest due date first
+      order: { dueDate: 'ASC', createdAt: 'DESC' }, 
     });
   }
 
@@ -224,7 +216,7 @@ export class TaskService {
       dto.sprintId !== undefined ? dto.sprintId : undefined,
     );
 
-    // Track assignee change for activity event
+    
     const oldAssigneeId = task.assigneeId;
 
     if (dto.title !== undefined) task.title = dto.title;
@@ -233,7 +225,7 @@ export class TaskService {
     if (dto.type !== undefined) task.type = dto.type;
     if (dto.storyPoints !== undefined) task.storyPoints = dto.storyPoints ?? null;
     if (dto.dueDate !== undefined) task.dueDate = dto.dueDate ? new Date(dto.dueDate) : null;
-    // Clear loaded relation objects so TypeORM doesn't override our FK changes
+    
     if (dto.epicId !== undefined) { task.epicId = dto.epicId; task.epic = undefined as any; }
     if (dto.sprintId !== undefined) { task.sprintId = dto.sprintId; task.sprint = undefined as any; }
     if (dto.assigneeId !== undefined) { task.assigneeId = dto.assigneeId; task.assignee = undefined as any; }
@@ -241,7 +233,7 @@ export class TaskService {
 
     await this.taskRepository.save(task);
 
-    // Emit assignee change event if it actually changed
+    
     if (dto.assigneeId !== undefined && dto.assigneeId !== oldAssigneeId) {
       this.eventEmitter.emit(
         'task.assignee_changed',
@@ -252,15 +244,12 @@ export class TaskService {
     return this.findOne(id);
   }
 
-  /**
-   * Soft-delete: sets isDeleted = true.
-   * Only the task creator or a project admin/owner can delete.
-   */
+  
   async remove(id: number, userId: number): Promise<Task> {
     const task = await this.findOne(id);
     const project = await this.projectService.findOne(task.projectId);
 
-    // Check: user is the task creator, or admin/owner on the project, or site admin
+    
     const currentUser = await this.userService.findById(userId);
     const isCreator = task.createdById === userId;
     const membership = project.members.find((m) => m.userId === userId);
@@ -278,7 +267,7 @@ export class TaskService {
     return this.findOne(id);
   }
 
-  // ─── Workflow Status Transitions ──────────────────────────
+  
 
   private static readonly TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
     [TaskStatus.TODO]: [TaskStatus.IN_PROGRESS],
@@ -291,7 +280,7 @@ export class TaskService {
     const task = await this.findOne(id);
     await this.assertMember(task.projectId, userId);
 
-    // No-op if requesting the current status
+    
     if (task.status === newStatus) {
       return task;
     }
@@ -306,7 +295,7 @@ export class TaskService {
     const fromStatus = task.status;
     task.status = newStatus;
 
-    // Stamp or clear completedAt
+    
     if (newStatus === TaskStatus.DONE) {
       task.completedAt = new Date();
     } else if (task.completedAt) {
@@ -315,7 +304,7 @@ export class TaskService {
 
     await this.taskRepository.save(task);
 
-    // Emit status change event (activity listener writes the log)
+    
     this.eventEmitter.emit(
       'task.status_changed',
       new TaskStatusChangedEvent(id, userId, fromStatus, newStatus),
