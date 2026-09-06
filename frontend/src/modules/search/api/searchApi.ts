@@ -1,11 +1,6 @@
 import { api } from '../../../common/lib/api';
+import { searchGlobal as _searchGlobal } from '@ipm/shared';
 
-export interface SearchResult {
-  projects: { id: number; name: string }[];
-  tasks: { id: number; title: string; projectName: string; status: string }[];
-}
+export type { SearchResult } from '@ipm/shared';
 
-export async function searchGlobal(q: string): Promise<SearchResult> {
-  const res = await api.get<SearchResult>('/search', { params: { q } });
-  return res.data;
-}
+export const searchGlobal = (q: string) => _searchGlobal(api, q);

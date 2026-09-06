@@ -1,36 +1,14 @@
 import { api } from '../../../common/lib/api';
+import {
+  listComments as _listComments,
+  createComment as _createComment,
+  updateComment as _updateComment,
+  deleteComment as _deleteComment,
+} from '@ipm/shared';
 
-export interface CommentDto {
-  id: number;
-  taskId: number;
-  authorId: number;
-  body: string;
-  createdAt: string;
-  updatedAt: string;
-  author: { id: number; fullName: string; email: string };
-}
+export type { CommentDto } from '@ipm/shared';
 
-export async function listComments(taskId: number): Promise<CommentDto[]> {
-  const res = await api.get<CommentDto[]>(`/tasks/${taskId}/comments`);
-  return res.data;
-}
-
-export async function createComment(
-  taskId: number,
-  body: string,
-): Promise<CommentDto> {
-  const res = await api.post<CommentDto>(`/tasks/${taskId}/comments`, { body });
-  return res.data;
-}
-
-export async function updateComment(
-  id: number,
-  body: string,
-): Promise<CommentDto> {
-  const res = await api.patch<CommentDto>(`/comments/${id}`, { body });
-  return res.data;
-}
-
-export async function deleteComment(id: number): Promise<void> {
-  await api.delete(`/comments/${id}`);
-}
+export const listComments = (taskId: number) => _listComments(api, taskId);
+export const createComment = (taskId: number, body: string) => _createComment(api, taskId, body);
+export const updateComment = (id: number, body: string) => _updateComment(api, id, body);
+export const deleteComment = (id: number) => _deleteComment(api, id);

@@ -1,0 +1,9 @@
+{
+  "name": "ipm",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "frontend",
+    "mobile"
+  ]
+}

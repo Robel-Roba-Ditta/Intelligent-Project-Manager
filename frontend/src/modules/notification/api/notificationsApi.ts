@@ -1,30 +1,12 @@
 import { api } from '../../../common/lib/api';
+import {
+  listNotifications as _listNotifications,
+  markNotificationRead as _markNotificationRead,
+  markAllNotificationsRead as _markAllNotificationsRead,
+} from '@ipm/shared';
 
-export interface NotificationDto {
-  id: number;
-  userId: number;
-  taskId: number;
-  type: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  task: { id: number; title: string } | null;
-}
+export type { NotificationDto, NotificationsResponse } from '@ipm/shared';
 
-export interface NotificationsResponse {
-  notifications: NotificationDto[];
-  unreadCount: number;
-}
-
-export async function listNotifications(): Promise<NotificationsResponse> {
-  const res = await api.get<NotificationsResponse>('/notifications');
-  return res.data;
-}
-
-export async function markNotificationRead(id: number): Promise<void> {
-  await api.patch(`/notifications/${id}/read`);
-}
-
-export async function markAllNotificationsRead(): Promise<void> {
-  await api.patch('/notifications/read-all');
-}
+export const listNotifications = () => _listNotifications(api);
+export const markNotificationRead = (id: number) => _markNotificationRead(api, id);
+export const markAllNotificationsRead = () => _markAllNotificationsRead(api);

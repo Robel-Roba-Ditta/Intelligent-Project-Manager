@@ -1,16 +1,6 @@
 import { api } from '../../../common/lib/api';
+import { listActivity as _listActivity } from '@ipm/shared';
 
-export interface ActivityLogDto {
-  id: number;
-  taskId: number;
-  actorId: number;
-  action: string;
-  details: Record<string, any>;
-  createdAt: string;
-  actor: { id: number; fullName: string; email: string };
-}
+export type { ActivityLogDto } from '@ipm/shared';
 
-export async function listActivity(taskId: number): Promise<ActivityLogDto[]> {
-  const res = await api.get<ActivityLogDto[]>(`/tasks/${taskId}/activity`);
-  return res.data;
-}
+export const listActivity = (taskId: number) => _listActivity(api, taskId);

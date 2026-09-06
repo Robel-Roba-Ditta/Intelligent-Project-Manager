@@ -1,16 +1,10 @@
 import { api } from '../../../common/lib/api';
+import {
+  watchTask as _watchTask,
+  unwatchTask as _unwatchTask,
+  getWatchStatus as _getWatchStatus,
+} from '@ipm/shared';
 
-export async function watchTask(taskId: number): Promise<{ watching: boolean }> {
-  const res = await api.post<{ watching: boolean }>(`/tasks/${taskId}/watch`);
-  return res.data;
-}
-
-export async function unwatchTask(taskId: number): Promise<{ watching: boolean }> {
-  const res = await api.delete<{ watching: boolean }>(`/tasks/${taskId}/watch`);
-  return res.data;
-}
-
-export async function getWatchStatus(taskId: number): Promise<{ watching: boolean }> {
-  const res = await api.get<{ watching: boolean }>(`/tasks/${taskId}/watch`);
-  return res.data;
-}
+export const watchTask = (taskId: number) => _watchTask(api, taskId);
+export const unwatchTask = (taskId: number) => _unwatchTask(api, taskId);
+export const getWatchStatus = (taskId: number) => _getWatchStatus(api, taskId);

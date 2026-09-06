@@ -1,97 +1,28 @@
 import { api } from '../../../common/lib/api';
+import {
+  listProjects as _listProjects,
+  getProject as _getProject,
+  createProject as _createProject,
+  updateProject as _updateProject,
+  activateProject as _activateProject,
+  deactivateProject as _deactivateProject,
+  deleteProject as _deleteProject,
+  listProjectMembers as _listProjectMembers,
+  addProjectMember as _addProjectMember,
+  updateProjectMemberRole as _updateProjectMemberRole,
+  removeProjectMember as _removeProjectMember,
+} from '@ipm/shared';
 
-export type ProjectMemberRole = 'owner' | 'admin' | 'member';
+export type { ProjectMemberRole, ProjectMemberDto, ProjectDto } from '@ipm/shared';
 
-export interface ProjectMemberDto {
-  id: number;
-  userId: number;
-  role: ProjectMemberRole;
-  user: {
-    id: number;
-    fullName: string;
-    email: string;
-  };
-}
-
-export interface ProjectDto {
-  id: number;
-  name: string;
-  description: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  createdById: number;
-  createdBy: {
-    id: number;
-    fullName: string;
-    email: string;
-  };
-  members: ProjectMemberDto[];
-}
-
-export async function listProjects(): Promise<ProjectDto[]> {
-  const res = await api.get<ProjectDto[]>('/projects');
-  return res.data;
-}
-
-export async function getProject(id: number): Promise<ProjectDto> {
-  const res = await api.get<ProjectDto>(`/projects/${id}`);
-  return res.data;
-}
-
-export async function createProject(data: {
-  name: string;
-  description?: string;
-}): Promise<ProjectDto> {
-  const res = await api.post<ProjectDto>('/projects', data);
-  return res.data;
-}
-
-export async function updateProject(
-  id: number,
-  data: { name?: string; description?: string },
-): Promise<ProjectDto> {
-  const res = await api.patch<ProjectDto>(`/projects/${id}`, data);
-  return res.data;
-}
-
-export async function activateProject(id: number): Promise<ProjectDto> {
-  const res = await api.patch<ProjectDto>(`/projects/${id}/activate`);
-  return res.data;
-}
-
-export async function deactivateProject(id: number): Promise<ProjectDto> {
-  const res = await api.patch<ProjectDto>(`/projects/${id}/deactivate`);
-  return res.data;
-}
-
-export async function deleteProject(id: number): Promise<void> {
-  await api.delete(`/projects/${id}`);
-}
-
-export async function listProjectMembers(projectId: number): Promise<ProjectMemberDto[]> {
-  const res = await api.get<ProjectMemberDto[]>(`/projects/${projectId}/members`);
-  return res.data;
-}
-
-export async function addProjectMember(
-  id: number,
-  data: { email: string; role?: ProjectMemberRole },
-): Promise<ProjectDto> {
-  const res = await api.post<ProjectDto>(`/projects/${id}/members`, data);
-  return res.data;
-}
-
-export async function updateProjectMemberRole(
-  id: number,
-  userId: number,
-  role: ProjectMemberRole,
-): Promise<ProjectDto> {
-  const res = await api.patch<ProjectDto>(`/projects/${id}/members/${userId}`, { role });
-  return res.data;
-}
-
-export async function removeProjectMember(id: number, userId: number): Promise<ProjectDto> {
-  const res = await api.delete<ProjectDto>(`/projects/${id}/members/${userId}`);
-  return res.data;
-}
+export const listProjects = () => _listProjects(api);
+export const getProject = (id: number) => _getProject(api, id);
+export const createProject = (data: { name: string; description?: string }) => _createProject(api, data);
+export const updateProject = (id: number, data: { name?: string; description?: string }) => _updateProject(api, id, data);
+export const activateProject = (id: number) => _activateProject(api, id);
+export const deactivateProject = (id: number) => _deactivateProject(api, id);
+export const deleteProject = (id: number) => _deleteProject(api, id);
+export const listProjectMembers = (projectId: number) => _listProjectMembers(api, projectId);
+export const addProjectMember = (id: number, data: { email: string; role?: import('@ipm/shared').ProjectMemberRole }) => _addProjectMember(api, id, data);
+export const updateProjectMemberRole = (id: number, userId: number, role: import('@ipm/shared').ProjectMemberRole) => _updateProjectMemberRole(api, id, userId, role);
+export const removeProjectMember = (id: number, userId: number) => _removeProjectMember(api, id, userId);

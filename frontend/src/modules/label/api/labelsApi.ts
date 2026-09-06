@@ -1,47 +1,19 @@
 import { api } from '../../../common/lib/api';
+import {
+  listLabels as _listLabels,
+  createLabel as _createLabel,
+  updateLabel as _updateLabel,
+  deleteLabel as _deleteLabel,
+  attachLabel as _attachLabel,
+  detachLabel as _detachLabel,
+} from '@ipm/shared';
+import type { CreateLabelData, UpdateLabelData } from '@ipm/shared';
 
-export interface LabelDto {
-  id: number;
-  name: string;
-  color: string;
-  projectId: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { LabelDto, CreateLabelData, UpdateLabelData } from '@ipm/shared';
 
-export interface CreateLabelData {
-  name: string;
-  color: string;
-}
-
-export interface UpdateLabelData {
-  name?: string;
-  color?: string;
-}
-
-export async function listLabels(projectId: number): Promise<LabelDto[]> {
-  const res = await api.get<LabelDto[]>(`/projects/${projectId}/labels`);
-  return res.data;
-}
-
-export async function createLabel(projectId: number, data: CreateLabelData): Promise<LabelDto> {
-  const res = await api.post<LabelDto>(`/projects/${projectId}/labels`, data);
-  return res.data;
-}
-
-export async function updateLabel(id: number, data: UpdateLabelData): Promise<LabelDto> {
-  const res = await api.patch<LabelDto>(`/labels/${id}`, data);
-  return res.data;
-}
-
-export async function deleteLabel(id: number): Promise<void> {
-  await api.delete(`/labels/${id}`);
-}
-
-export async function attachLabel(taskId: number, labelId: number): Promise<void> {
-  await api.post(`/tasks/${taskId}/labels`, { labelId });
-}
-
-export async function detachLabel(taskId: number, labelId: number): Promise<void> {
-  await api.delete(`/tasks/${taskId}/labels/${labelId}`);
-}
+export const listLabels = (projectId: number) => _listLabels(api, projectId);
+export const createLabel = (projectId: number, data: CreateLabelData) => _createLabel(api, projectId, data);
+export const updateLabel = (id: number, data: UpdateLabelData) => _updateLabel(api, id, data);
+export const deleteLabel = (id: number) => _deleteLabel(api, id);
+export const attachLabel = (taskId: number, labelId: number) => _attachLabel(api, taskId, labelId);
+export const detachLabel = (taskId: number, labelId: number) => _detachLabel(api, taskId, labelId);

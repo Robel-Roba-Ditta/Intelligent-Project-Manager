@@ -1,33 +1,12 @@
 import { api } from '../../../common/lib/api';
+import {
+  listTimeLogs as _listTimeLogs,
+  createTimeLog as _createTimeLog,
+  deleteTimeLog as _deleteTimeLog,
+} from '@ipm/shared';
 
-export interface TimeLogDto {
-  id: number;
-  taskId: number;
-  userId: number;
-  hours: number;
-  date: string;
-  createdAt: string;
-  user: { id: number; fullName: string; email: string };
-}
+export type { TimeLogDto, TimeLogsResponse } from '@ipm/shared';
 
-export interface TimeLogsResponse {
-  entries: TimeLogDto[];
-  totalHours: number;
-}
-
-export async function listTimeLogs(taskId: number): Promise<TimeLogsResponse> {
-  const res = await api.get<TimeLogsResponse>(`/tasks/${taskId}/time-logs`);
-  return res.data;
-}
-
-export async function createTimeLog(
-  taskId: number,
-  data: { hours: number; date: string },
-): Promise<TimeLogDto> {
-  const res = await api.post<TimeLogDto>(`/tasks/${taskId}/time-logs`, data);
-  return res.data;
-}
-
-export async function deleteTimeLog(id: number): Promise<void> {
-  await api.delete(`/time-logs/${id}`);
-}
+export const listTimeLogs = (taskId: number) => _listTimeLogs(api, taskId);
+export const createTimeLog = (taskId: number, data: { hours: number; date: string }) => _createTimeLog(api, taskId, data);
+export const deleteTimeLog = (id: number) => _deleteTimeLog(api, id);

@@ -1,43 +1,17 @@
 import { api } from '../../../common/lib/api';
+import {
+  listEpics as _listEpics,
+  getEpic as _getEpic,
+  createEpic as _createEpic,
+  updateEpic as _updateEpic,
+  deleteEpic as _deleteEpic,
+} from '@ipm/shared';
+import type { EpicStatus } from '@ipm/shared';
 
-export type EpicStatus = 'OPEN' | 'IN_PROGRESS' | 'DONE';
+export type { EpicStatus, EpicDto } from '@ipm/shared';
 
-export interface EpicDto {
-  id: number;
-  name: string;
-  description: string | null;
-  status: EpicStatus;
-  projectId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export async function listEpics(projectId: number): Promise<EpicDto[]> {
-  const res = await api.get<EpicDto[]>(`/projects/${projectId}/epics`);
-  return res.data;
-}
-
-export async function getEpic(id: number): Promise<EpicDto> {
-  const res = await api.get<EpicDto>(`/epics/${id}`);
-  return res.data;
-}
-
-export async function createEpic(
-  projectId: number,
-  data: { name: string; description?: string; status?: EpicStatus },
-): Promise<EpicDto> {
-  const res = await api.post<EpicDto>(`/projects/${projectId}/epics`, data);
-  return res.data;
-}
-
-export async function updateEpic(
-  id: number,
-  data: { name?: string; description?: string; status?: EpicStatus },
-): Promise<EpicDto> {
-  const res = await api.patch<EpicDto>(`/epics/${id}`, data);
-  return res.data;
-}
-
-export async function deleteEpic(id: number): Promise<void> {
-  await api.delete(`/epics/${id}`);
-}
+export const listEpics = (projectId: number) => _listEpics(api, projectId);
+export const getEpic = (id: number) => _getEpic(api, id);
+export const createEpic = (projectId: number, data: { name: string; description?: string; status?: EpicStatus }) => _createEpic(api, projectId, data);
+export const updateEpic = (id: number, data: { name?: string; description?: string; status?: EpicStatus }) => _updateEpic(api, id, data);
+export const deleteEpic = (id: number) => _deleteEpic(api, id);

@@ -1,12 +1,6 @@
 import { api } from '../../../common/lib/api';
+import { listUsers as _listUsers } from '@ipm/shared';
 
-export interface UserDto {
-  id: number;
-  email: string;
-  fullName: string;
-}
+export type { UserDto } from '@ipm/shared';
 
-export async function listUsers(): Promise<UserDto[]> {
-  const res = await api.get<UserDto[]>('/users');
-  return res.data;
-}
+export const listUsers = () => _listUsers(api);
