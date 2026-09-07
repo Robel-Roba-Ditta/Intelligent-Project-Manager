@@ -81,7 +81,9 @@ export default function ProjectDetailScreen({ route }: Props) {
       <TopTab.Screen name="Sprints">
         {() => <SprintsTab projectId={project.id} />}
       </TopTab.Screen>
-      <TopTab.Screen name="Tasks" component={TasksTab} />
+      <TopTab.Screen name="Tasks">
+        {() => <TasksTab projectId={project.id} />}
+      </TopTab.Screen>
     </TopTab.Navigator>
   );
 }
