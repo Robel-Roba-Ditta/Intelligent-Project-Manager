@@ -1,33 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
+  ActivityIndicator,
   Text,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { getProject } from '@ipm/shared';
 import type { ProjectDto } from '@ipm/shared';
 import { api } from '../lib/api';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+import DetailsTab from './project/DetailsTab';
+import MembersTab from './project/MembersTab';
+import EpicsTab from './project/EpicsTab';
+import SprintsTab from './project/SprintsTab';
+import TasksTab from './project/TasksTab';
+
+const TopTab = createMaterialTopTabNavigator();
+
 type Props = NativeStackScreenProps<any, 'ProjectDetail'>;
 
 export default function ProjectDetailScreen({ route }: Props) {
-  const { projectId } = route.params as { projectId: number; projectName: string };
+  const { projectId } = route.params as { projectId: number };
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const p = await getProject(api, projectId);
-        setProject(p);
-      } catch {
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const loadProject = useCallback(async () => {
+    try {
+      const p = await getProject(api, projectId);
+      setProject(p);
+    } catch {
+    } finally {
+      setLoading(false);
+    }
   }, [projectId]);
+
+  useEffect(() => {
+    loadProject();
+  }, [loadProject]);
 
   if (loading) {
     return (
@@ -46,46 +57,37 @@ export default function ProjectDetailScreen({ route }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.name}>{project.name}</Text>
-      {project.description && (
-        <Text style={styles.description}>{project.description}</Text>
-      )}
-      <View style={styles.metaRow}>
-        <View style={[styles.statusBadge, project.isActive ? styles.activeBadge : styles.inactiveBadge]}>
-          <Text style={[styles.statusText, project.isActive ? styles.activeText : styles.inactiveText]}>
-            {project.isActive ? 'Active' : 'Inactive'}
-          </Text>
-        </View>
-        <Text style={styles.memberCount}>
-          {project.members.length} member{project.members.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
-      <Text style={styles.placeholder}>
-        Full project details coming in Phase 2.
-      </Text>
-    </View>
+    <TopTab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#0C66E4',
+        tabBarInactiveTintColor: '#6b7280',
+        tabBarIndicatorStyle: { backgroundColor: '#0C66E4' },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600', textTransform: 'none' },
+        tabBarStyle: { backgroundColor: '#ffffff', elevation: 0, shadowOpacity: 0 },
+        tabBarScrollEnabled: true,
+        tabBarItemStyle: { width: 'auto', paddingHorizontal: 12 },
+        lazy: true,
+      }}
+    >
+      <TopTab.Screen name="Details">
+        {() => <DetailsTab project={project} onUpdate={loadProject} />}
+      </TopTab.Screen>
+      <TopTab.Screen name="Members" options={{ tabBarBadge: () => <Text style={styles.badge}>{project.members.length}</Text> }}>
+        {() => <MembersTab project={project} onUpdate={loadProject} />}
+      </TopTab.Screen>
+      <TopTab.Screen name="Epics">
+        {() => <EpicsTab projectId={project.id} />}
+      </TopTab.Screen>
+      <TopTab.Screen name="Sprints">
+        {() => <SprintsTab projectId={project.id} />}
+      </TopTab.Screen>
+      <TopTab.Screen name="Tasks" component={TasksTab} />
+    </TopTab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    padding: 24,
-    paddingTop: 56,
-  },
-  name: { fontSize: 24, fontWeight: '700', color: '#1a1a1a' },
-  description: { fontSize: 15, color: '#6b7280', marginTop: 8, lineHeight: 22 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 1 },
-  activeBadge: { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
-  inactiveBadge: { backgroundColor: '#f9fafb', borderColor: '#e5e7eb' },
-  statusText: { fontSize: 12, fontWeight: '600' },
-  activeText: { color: '#059669' },
-  inactiveText: { color: '#6b7280' },
-  memberCount: { fontSize: 13, color: '#6b7280' },
   errorText: { fontSize: 16, color: '#dc2626' },
-  placeholder: { fontSize: 14, color: '#9ca3af', marginTop: 32, textAlign: 'center', fontStyle: 'italic' },
+  badge: { fontSize: 10, color: '#6b7280', backgroundColor: '#f3f4f6', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 8, overflow: 'hidden' },
 });
