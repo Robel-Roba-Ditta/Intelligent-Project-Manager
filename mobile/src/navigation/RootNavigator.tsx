@@ -9,6 +9,7 @@ import SignupScreen from '../screens/SignupScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectDetailScreen from '../screens/ProjectDetailScreen';
+import TaskDetailScreen from '../screens/TaskDetailScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
@@ -54,6 +55,16 @@ function ProjectsStackScreen() {
           headerStyle: { backgroundColor: '#ffffff' },
           headerShadowVisible: false,
         })}
+      />
+      <ProjectsStack.Screen
+        name="TaskDetail"
+        component={TaskDetailScreen}
+        options={{
+          title: 'Task',
+          headerTintColor: '#0C66E4',
+          headerStyle: { backgroundColor: '#ffffff' },
+          headerShadowVisible: false,
+        }}
       />
     </ProjectsStack.Navigator>
   );

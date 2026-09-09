@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -289,7 +290,7 @@ export default function TasksTab({ projectId }: Props) {
   const topLevelTasks = tasks.filter(t => !t.parentTaskId);
   const parentCandidates = tasks.filter(t => !t.parentTaskId);
 
-  function renderTaskCard(task: TaskDto) {
+  function renderTaskCardInner(task: TaskDto, onPress: () => void) {
     const sc = STATUS_CONFIG[task.status];
     const pc = PRIORITY_CONFIG[task.priority];
     return (
@@ -297,7 +298,7 @@ export default function TasksTab({ projectId }: Props) {
         key={String(task.id)}
         style={styles.taskCard}
         activeOpacity={0.7}
-        onPress={() => openMoveSheet(task)}
+        onPress={onPress}
         onLongPress={() => handleDelete(task.id, task.title)}
       >
         <View style={styles.taskHeader}>
@@ -335,6 +336,16 @@ export default function TasksTab({ projectId }: Props) {
         </View>
       </TouchableOpacity>
     );
+  }
+
+  const navigation = useNavigation<any>();
+
+  function renderListCard(task: TaskDto) {
+    return renderTaskCardInner(task, () => navigation.navigate('TaskDetail', { taskId: task.id, projectId }));
+  }
+
+  function renderBoardCard(task: TaskDto) {
+    return renderTaskCardInner(task, () => openMoveSheet(task));
   }
 
   return (
@@ -382,7 +393,7 @@ export default function TasksTab({ projectId }: Props) {
           contentContainerStyle={styles.listContent}
           data={tasks}
           keyExtractor={item => String(item.id)}
-          renderItem={({ item }) => renderTaskCard(item)}
+          renderItem={({ item }) => renderListCard(item)}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No tasks yet. Tap "+ New" to create one.</Text>
@@ -428,7 +439,7 @@ export default function TasksTab({ projectId }: Props) {
                   data={col.tasks}
                   keyExtractor={item => String(item.id)}
                   contentContainerStyle={styles.boardColumnContent}
-                  renderItem={({ item }) => renderTaskCard(item)}
+                  renderItem={({ item }) => renderBoardCard(item)}
                   ListEmptyComponent={
                     <View style={styles.boardEmpty}>
                       <Text style={styles.emptyText}>No tasks</Text>
