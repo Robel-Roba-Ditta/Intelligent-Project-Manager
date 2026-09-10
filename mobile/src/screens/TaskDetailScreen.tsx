@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
-  FlatList,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
 import {
   getTask,
   updateTask,
@@ -31,9 +31,17 @@ import {
   createLabel,
   listProjectMembers,
   listSprints,
+  listTasks,
   getWatchStatus,
   watchTask,
   unwatchTask,
+  listTimeLogs,
+  createTimeLog,
+  deleteTimeLog,
+  listDependencies,
+  createDependency,
+  deleteDependency,
+  listActivity,
   extractErrorMessage,
 } from '@ipm/shared';
 import type {
@@ -45,6 +53,10 @@ import type {
   LabelDto,
   ProjectMemberDto,
   SprintDto,
+  TimeLogDto,
+  TimeLogsResponse,
+  DependenciesResponse,
+  ActivityLogDto,
 } from '@ipm/shared';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -71,29 +83,66 @@ const TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   DONE: ['IN_REVIEW'],
 };
 
+function formatActivityLine(entry: ActivityLogDto): string {
+  const d = entry.details;
+  switch (entry.action) {
+    case 'status_changed':
+      return `changed status from ${STATUS_CONFIG[d.fromStatus as TaskStatus]?.label || d.fromStatus} to ${STATUS_CONFIG[d.toStatus as TaskStatus]?.label || d.toStatus}`;
+    case 'assignee_changed':
+      return d.toAssigneeId ? 'assigned this task' : 'unassigned this task';
+    case 'comment_posted':
+      return 'commented';
+    case 'attachment_added':
+      return `added attachment "${d.fileName}"`;
+    case 'watcher_toggled':
+      return d.watching ? 'started watching' : 'stopped watching';
+    case 'dependency_added':
+      return `linked as blocking Task #${d.blockedTaskId}`;
+    case 'time_logged':
+      return `logged ${d.hours}h`;
+    default:
+      return entry.action;
+  }
+}
+
+function formatRelativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
 type Props = NativeStackScreenProps<any, 'TaskDetail'>;
 
 export default function TaskDetailScreen({ route }: Props) {
   const { taskId, projectId } = route.params as { taskId: number; projectId: number };
   const { user } = useAuth();
+  const navigation = useNavigation<any>();
 
   const [task, setTask] = useState<TaskDto | null>(null);
   const [members, setMembers] = useState<ProjectMemberDto[]>([]);
   const [sprints, setSprints] = useState<SprintDto[]>([]);
   const [projectLabels, setProjectLabels] = useState<LabelDto[]>([]);
+  const [projectTasks, setProjectTasks] = useState<TaskDto[]>([]);
   const [comments, setComments] = useState<CommentDto[]>([]);
   const [attachments, setAttachments] = useState<AttachmentDto[]>([]);
   const [watching, setWatching] = useState(false);
+  const [timeLogs, setTimeLogs] = useState<TimeLogDto[]>([]);
+  const [totalHours, setTotalHours] = useState(0);
+  const [deps, setDeps] = useState<DependenciesResponse>({ blocks: [], blockedBy: [] });
+  const [activity, setActivity] = useState<ActivityLogDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
-  // Inline edit state
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [titleDirty, setTitleDirty] = useState(false);
   const [descDirty, setDescDirty] = useState(false);
 
-  // Sheets
   const [moveSheetVisible, setMoveSheetVisible] = useState(false);
   const [pickerSheet, setPickerSheet] = useState<{ field: string; options: { label: string; value: string }[] } | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -101,33 +150,46 @@ export default function TaskDetailScreen({ route }: Props) {
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState('#0C66E4');
 
-  // Comments
   const [commentText, setCommentText] = useState('');
-
-  // Attachments
   const [attName, setAttName] = useState('');
   const [attUrl, setAttUrl] = useState('');
 
+  const [logHours, setLogHours] = useState('');
+  const [logDate, setLogDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showLogDatePicker, setShowLogDatePicker] = useState(false);
+
+  const [depPickerVisible, setDepPickerVisible] = useState(false);
+  const [depDirection, setDepDirection] = useState<'blocks' | 'blockedBy'>('blocks');
+
   const loadAll = useCallback(async () => {
     try {
-      const [t, m, s, l, c, a, w] = await Promise.all([
+      const [t, m, sp, l, pt, c, a, w, tl, d, act] = await Promise.all([
         getTask(api, taskId),
         listProjectMembers(api, projectId),
         listSprints(api, projectId),
         listLabels(api, projectId),
+        listTasks(api, projectId),
         listComments(api, taskId),
         listAttachments(api, taskId),
         getWatchStatus(api, taskId),
+        listTimeLogs(api, taskId),
+        listDependencies(api, taskId),
+        listActivity(api, taskId),
       ]);
       setTask(t);
       setEditTitle(t.title);
       setEditDesc(t.description ?? '');
       setMembers(m);
-      setSprints(s);
+      setSprints(sp);
       setProjectLabels(l);
+      setProjectTasks(pt);
       setComments(c);
       setAttachments(a);
       setWatching(w.watching);
+      setTimeLogs(tl.entries);
+      setTotalHours(tl.totalHours);
+      setDeps(d);
+      setActivity(act);
     } catch {
     } finally {
       setLoading(false);
@@ -136,34 +198,24 @@ export default function TaskDetailScreen({ route }: Props) {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // --- Field savers (independent, no page-wide save) ---
-
   async function saveTitle() {
     if (!titleDirty || !task || editTitle.trim() === task.title) { setTitleDirty(false); return; }
-    try {
-      await updateTask(api, task.id, { title: editTitle.trim() });
-      setTask(prev => prev ? { ...prev, title: editTitle.trim() } : prev);
-      setTitleDirty(false);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { await updateTask(api, task.id, { title: editTitle.trim() }); setTask(prev => prev ? { ...prev, title: editTitle.trim() } : prev); setTitleDirty(false); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
   }
 
   async function saveDesc() {
     if (!descDirty || !task) { setDescDirty(false); return; }
-    try {
-      await updateTask(api, task.id, { description: editDesc.trim() || undefined });
-      setTask(prev => prev ? { ...prev, description: editDesc.trim() || null } : prev);
-      setDescDirty(false);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { await updateTask(api, task.id, { description: editDesc.trim() || undefined }); setTask(prev => prev ? { ...prev, description: editDesc.trim() || null } : prev); setDescDirty(false); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
   }
 
   async function handleStatusMove(newStatus: TaskStatus) {
     if (!task) return;
     setMoveSheetVisible(false);
     setBusy(true);
-    try {
-      const updated = await changeTaskStatus(api, task.id, newStatus);
-      setTask(updated);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { const updated = await changeTaskStatus(api, task.id, newStatus); setTask(updated); const act = await listActivity(api, taskId); setActivity(act); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
 
@@ -172,16 +224,14 @@ export default function TaskDetailScreen({ route }: Props) {
     setPickerSheet(null);
     setBusy(true);
     try {
-      if (field === 'priority') {
-        const updated = await updateTask(api, task.id, { priority: value as TaskPriority });
-        setTask(updated);
-      } else if (field === 'assignee') {
-        const updated = await updateTask(api, task.id, { assigneeId: value ? Number(value) : null });
-        setTask(updated);
-      } else if (field === 'sprint') {
-        const updated = await updateTask(api, task.id, { sprintId: value ? Number(value) : null });
-        setTask(updated);
-      }
+      let updated: TaskDto;
+      if (field === 'priority') updated = await updateTask(api, task.id, { priority: value as TaskPriority });
+      else if (field === 'assignee') updated = await updateTask(api, task.id, { assigneeId: value ? Number(value) : null });
+      else if (field === 'sprint') updated = await updateTask(api, task.id, { sprintId: value ? Number(value) : null });
+      else return;
+      setTask(updated);
+      const act = await listActivity(api, taskId);
+      setActivity(act);
     } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
@@ -190,34 +240,23 @@ export default function TaskDetailScreen({ route }: Props) {
     setShowDatePicker(Platform.OS === 'ios');
     if (!task || !date) return;
     setBusy(true);
-    try {
-      const updated = await updateTask(api, task.id, { dueDate: date.toISOString().split('T')[0] });
-      setTask(updated);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { const updated = await updateTask(api, task.id, { dueDate: date.toISOString().split('T')[0] }); setTask(updated); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
 
-  // --- Watch ---
   async function toggleWatch() {
     setBusy(true);
-    try {
-      if (watching) {
-        await unwatchTask(api, taskId);
-        setWatching(false);
-      } else {
-        await watchTask(api, taskId);
-        setWatching(true);
-      }
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { if (watching) { await unwatchTask(api, taskId); setWatching(false); } else { await watchTask(api, taskId); setWatching(true); } }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
 
-  // --- Labels ---
   async function handleToggleLabel(labelId: number, isAttached: boolean) {
     if (!task) return;
     try {
-      if (isAttached) { await detachLabel(api, task.id, labelId); }
-      else { await attachLabel(api, task.id, labelId); }
+      if (isAttached) await detachLabel(api, task.id, labelId);
+      else await attachLabel(api, task.id, labelId);
       const updated = await getTask(api, task.id);
       setTask(updated);
     } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
@@ -225,70 +264,81 @@ export default function TaskDetailScreen({ route }: Props) {
 
   async function handleCreateLabel() {
     if (!newLabelName.trim()) return;
-    try {
-      await createLabel(api, projectId, { name: newLabelName.trim(), color: newLabelColor });
-      setNewLabelName('');
-      setNewLabelColor('#0C66E4');
-      const labels = await listLabels(api, projectId);
-      setProjectLabels(labels);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { await createLabel(api, projectId, { name: newLabelName.trim(), color: newLabelColor }); setNewLabelName(''); setNewLabelColor('#0C66E4'); setProjectLabels(await listLabels(api, projectId)); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
   }
 
-  // --- Comments ---
   async function handlePostComment() {
     if (!commentText.trim()) return;
     setBusy(true);
-    try {
-      await createComment(api, taskId, commentText.trim());
-      setCommentText('');
-      const updated = await listComments(api, taskId);
-      setComments(updated);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { await createComment(api, taskId, commentText.trim()); setCommentText(''); setComments(await listComments(api, taskId)); setActivity(await listActivity(api, taskId)); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
 
   async function handleDeleteComment(id: number) {
     Alert.alert('Delete comment', 'Delete this comment?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await deleteComment(api, id);
-          setComments(prev => prev.filter(c => c.id !== id));
-        } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
-      }},
+      { text: 'Delete', style: 'destructive', onPress: async () => { try { await deleteComment(api, id); setComments(prev => prev.filter(c => c.id !== id)); } catch (err) { Alert.alert('Error', extractErrorMessage(err)); } } },
     ]);
   }
 
-  // --- Attachments ---
   async function handleAddAttachment() {
     if (!attName.trim() || !attUrl.trim()) return;
     setBusy(true);
-    try {
-      await createAttachment(api, taskId, { fileName: attName.trim(), fileUrl: attUrl.trim() });
-      setAttName('');
-      setAttUrl('');
-      const updated = await listAttachments(api, taskId);
-      setAttachments(updated);
-    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    try { await createAttachment(api, taskId, { fileName: attName.trim(), fileUrl: attUrl.trim() }); setAttName(''); setAttUrl(''); setAttachments(await listAttachments(api, taskId)); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
     finally { setBusy(false); }
   }
 
   async function handleDeleteAttachment(id: number) {
     Alert.alert('Delete attachment', 'Remove this attachment?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await deleteAttachment(api, id);
-          setAttachments(prev => prev.filter(a => a.id !== id));
-        } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
-      }},
+      { text: 'Delete', style: 'destructive', onPress: async () => { try { await deleteAttachment(api, id); setAttachments(prev => prev.filter(a => a.id !== id)); } catch (err) { Alert.alert('Error', extractErrorMessage(err)); } } },
     ]);
   }
 
-  // --- Helpers ---
-  function getInitials(name: string): string {
-    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  async function handleAddTimeLog() {
+    const h = parseFloat(logHours);
+    if (isNaN(h) || h <= 0) return;
+    setBusy(true);
+    try { await createTimeLog(api, taskId, { hours: h, date: logDate }); setLogHours(''); const tl = await listTimeLogs(api, taskId); setTimeLogs(tl.entries); setTotalHours(tl.totalHours); setActivity(await listActivity(api, taskId)); }
+    catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    finally { setBusy(false); }
   }
+
+  async function handleDeleteTimeLog(id: number) {
+    Alert.alert('Delete time log', 'Remove this entry?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => { try { await deleteTimeLog(api, id); const tl = await listTimeLogs(api, taskId); setTimeLogs(tl.entries); setTotalHours(tl.totalHours); } catch (err) { Alert.alert('Error', extractErrorMessage(err)); } } },
+    ]);
+  }
+
+  function openDepPicker(direction: 'blocks' | 'blockedBy') {
+    setDepDirection(direction);
+    setDepPickerVisible(true);
+  }
+
+  async function handleAddDependency(otherTaskId: number) {
+    setDepPickerVisible(false);
+    setBusy(true);
+    try {
+      if (depDirection === 'blocks') await createDependency(api, taskId, otherTaskId);
+      else await createDependency(api, otherTaskId, taskId);
+      setDeps(await listDependencies(api, taskId));
+      setActivity(await listActivity(api, taskId));
+    } catch (err) { Alert.alert('Error', extractErrorMessage(err)); }
+    finally { setBusy(false); }
+  }
+
+  async function handleRemoveDependency(depId: number) {
+    Alert.alert('Remove dependency', 'Remove this link?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: async () => { try { await deleteDependency(api, depId); setDeps(await listDependencies(api, taskId)); } catch (err) { Alert.alert('Error', extractErrorMessage(err)); } } },
+    ]);
+  }
+
+  function getInitials(name: string): string { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
   function avatarColor(name: string): string {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -296,217 +346,236 @@ export default function TaskDetailScreen({ route }: Props) {
     return colors[Math.abs(hash) % colors.length];
   }
 
-  if (loading) {
-    return <View style={s.centered}><ActivityIndicator size="large" color="#0C66E4" /></View>;
-  }
-  if (!task) {
-    return <View style={s.centered}><Text style={s.errorText}>Task not found</Text></View>;
-  }
+  if (loading) return <View style={st.centered}><ActivityIndicator size="large" color="#0C66E4" /></View>;
+  if (!task) return <View style={st.centered}><Text style={st.errorText}>Task not found</Text></View>;
 
   const sc = STATUS_CONFIG[task.status];
   const pc = PRIORITY_CONFIG[task.priority];
   const attachedIds = new Set(task.labels.map(l => l.id));
+  const existingDepIds = new Set([...deps.blocks.map(d => d.task.id), ...deps.blockedBy.map(d => d.task.id), taskId]);
+  const depCandidates = projectTasks.filter(t => !existingDepIds.has(t.id));
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={st.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
+      <ScrollView style={st.scroll} contentContainerStyle={st.scrollContent} keyboardShouldPersistTaps="handled">
 
         {/* Title */}
-        <TextInput
-          style={s.titleInput}
-          value={editTitle}
-          onChangeText={v => { setEditTitle(v); setTitleDirty(true); }}
-          onBlur={saveTitle}
-          onSubmitEditing={saveTitle}
-          returnKeyType="done"
-          placeholder="Task title"
-          placeholderTextColor="#9ca3af"
-        />
+        <TextInput style={st.titleInput} value={editTitle} onChangeText={v => { setEditTitle(v); setTitleDirty(true); }} onBlur={saveTitle} onSubmitEditing={saveTitle} returnKeyType="done" placeholder="Task title" placeholderTextColor="#9ca3af" />
 
         {/* Description */}
-        <TextInput
-          style={s.descInput}
-          value={editDesc}
-          onChangeText={v => { setEditDesc(v); setDescDirty(true); }}
-          onBlur={saveDesc}
-          placeholder="Add a description..."
-          placeholderTextColor="#9ca3af"
-          multiline
-        />
+        <TextInput style={st.descInput} value={editDesc} onChangeText={v => { setEditDesc(v); setDescDirty(true); }} onBlur={saveDesc} placeholder="Add a description..." placeholderTextColor="#9ca3af" multiline />
 
         {/* Watch toggle */}
-        <TouchableOpacity style={[s.watchButton, watching && s.watchingButton]} onPress={toggleWatch} disabled={busy}>
-          <Text style={[s.watchText, watching && s.watchingText]}>
-            {watching ? '👁 Watching' : '👁 Watch'}
-          </Text>
+        <TouchableOpacity style={[st.watchButton, watching && st.watchingButton]} onPress={toggleWatch} disabled={busy}>
+          <Text style={[st.watchText, watching && st.watchingText]}>{watching ? '👁 Watching' : '👁 Watch'}</Text>
         </TouchableOpacity>
 
         {/* Fields */}
-        <View style={s.fieldsCard}>
-          <Text style={s.sectionTitle}>Details</Text>
-
-          {/* Status */}
-          <TouchableOpacity style={s.fieldRow} onPress={() => setMoveSheetVisible(true)} disabled={busy}>
-            <Text style={s.fieldLabel}>Status</Text>
-            <View style={[s.fieldBadge, { backgroundColor: sc.bg, borderColor: sc.border }]}>
-              <View style={[s.dot, { backgroundColor: sc.dotColor }]} />
-              <Text style={[s.fieldBadgeText, { color: sc.text }]}>{sc.label} ▾</Text>
+        <View style={st.fieldsCard}>
+          <Text style={st.sectionTitle}>Details</Text>
+          <TouchableOpacity style={st.fieldRow} onPress={() => setMoveSheetVisible(true)} disabled={busy}>
+            <Text style={st.fieldLabel}>Status</Text>
+            <View style={[st.fieldBadge, { backgroundColor: sc.bg, borderColor: sc.border }]}>
+              <View style={[st.dot, { backgroundColor: sc.dotColor }]} />
+              <Text style={[st.fieldBadgeText, { color: sc.text }]}>{sc.label} ▾</Text>
             </View>
           </TouchableOpacity>
-
-          {/* Priority */}
-          <TouchableOpacity style={s.fieldRow} onPress={() => setPickerSheet({
-            field: 'priority',
-            options: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as TaskPriority[]).map(p => ({ label: PRIORITY_CONFIG[p].label, value: p })),
-          })} disabled={busy}>
-            <Text style={s.fieldLabel}>Priority</Text>
-            <View style={[s.fieldBadge, { backgroundColor: pc.bg, borderColor: pc.border }]}>
-              <Text style={[s.fieldBadgeText, { color: pc.text }]}>{pc.label} ▾</Text>
+          <TouchableOpacity style={st.fieldRow} onPress={() => setPickerSheet({ field: 'priority', options: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as TaskPriority[]).map(p => ({ label: PRIORITY_CONFIG[p].label, value: p })) })} disabled={busy}>
+            <Text style={st.fieldLabel}>Priority</Text>
+            <View style={[st.fieldBadge, { backgroundColor: pc.bg, borderColor: pc.border }]}>
+              <Text style={[st.fieldBadgeText, { color: pc.text }]}>{pc.label} ▾</Text>
             </View>
           </TouchableOpacity>
-
-          {/* Assignee */}
-          <TouchableOpacity style={s.fieldRow} onPress={() => setPickerSheet({
-            field: 'assignee',
-            options: [{ label: 'Unassigned', value: '' }, ...members.map(m => ({ label: m.user.fullName, value: String(m.userId) }))],
-          })} disabled={busy}>
-            <Text style={s.fieldLabel}>Assignee</Text>
-            <Text style={s.fieldValue}>{task.assignee?.fullName ?? 'Unassigned'} ▾</Text>
+          <TouchableOpacity style={st.fieldRow} onPress={() => setPickerSheet({ field: 'assignee', options: [{ label: 'Unassigned', value: '' }, ...members.map(m => ({ label: m.user.fullName, value: String(m.userId) }))] })} disabled={busy}>
+            <Text style={st.fieldLabel}>Assignee</Text>
+            <Text style={st.fieldValue}>{task.assignee?.fullName ?? 'Unassigned'} ▾</Text>
           </TouchableOpacity>
-
-          {/* Sprint */}
-          <TouchableOpacity style={s.fieldRow} onPress={() => setPickerSheet({
-            field: 'sprint',
-            options: [{ label: 'None', value: '' }, ...sprints.map(sp => ({ label: sp.name, value: String(sp.id) }))],
-          })} disabled={busy}>
-            <Text style={s.fieldLabel}>Sprint</Text>
-            <Text style={s.fieldValue}>{task.sprint?.name ?? 'None'} ▾</Text>
+          <TouchableOpacity style={st.fieldRow} onPress={() => setPickerSheet({ field: 'sprint', options: [{ label: 'None', value: '' }, ...sprints.map(sp => ({ label: sp.name, value: String(sp.id) }))] })} disabled={busy}>
+            <Text style={st.fieldLabel}>Sprint</Text>
+            <Text style={st.fieldValue}>{task.sprint?.name ?? 'None'} ▾</Text>
           </TouchableOpacity>
-
-          {/* Due Date */}
-          <TouchableOpacity style={s.fieldRow} onPress={() => setShowDatePicker(true)} disabled={busy}>
-            <Text style={s.fieldLabel}>Due Date</Text>
-            <Text style={s.fieldValue}>
-              {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'None'} ▾
-            </Text>
+          <TouchableOpacity style={st.fieldRow} onPress={() => setShowDatePicker(true)} disabled={busy}>
+            <Text style={st.fieldLabel}>Due Date</Text>
+            <Text style={st.fieldValue}>{task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'None'} ▾</Text>
           </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={task.dueDate ? new Date(task.dueDate) : new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDueDateChange}
-            />
-          )}
+          {showDatePicker && <DateTimePicker value={task.dueDate ? new Date(task.dueDate) : new Date()} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={handleDueDateChange} />}
         </View>
 
         {/* Labels */}
-        <View style={s.sectionCard}>
-          <View style={s.sectionHeader}>
-            <Text style={s.sectionTitle}>Labels</Text>
-            <TouchableOpacity onPress={() => setLabelSheetVisible(true)}>
-              <Text style={s.addAction}>+ Add</Text>
-            </TouchableOpacity>
+        <View style={st.sectionCard}>
+          <View style={st.sectionHeader}>
+            <Text style={st.sectionTitle}>Labels</Text>
+            <TouchableOpacity onPress={() => setLabelSheetVisible(true)}><Text style={st.addAction}>+ Add</Text></TouchableOpacity>
           </View>
-          <View style={s.labelChips}>
-            {task.labels.length === 0 && <Text style={s.muted}>No labels</Text>}
+          <View style={st.labelChips}>
+            {task.labels.length === 0 && <Text style={st.muted}>No labels</Text>}
             {task.labels.map(label => (
-              <View key={label.id} style={[s.labelChip, { backgroundColor: `${label.color}18`, borderColor: `${label.color}40` }]}>
-                <View style={[s.labelDot, { backgroundColor: label.color }]} />
-                <Text style={[s.labelChipText, { color: label.color }]}>{label.name}</Text>
+              <View key={label.id} style={[st.labelChip, { backgroundColor: `${label.color}18`, borderColor: `${label.color}40` }]}>
+                <View style={[st.labelDot, { backgroundColor: label.color }]} />
+                <Text style={[st.labelChipText, { color: label.color }]}>{label.name}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Comments */}
-        <View style={s.sectionCard}>
-          <Text style={s.sectionTitle}>Comments ({comments.length})</Text>
-          {comments.length === 0 && <Text style={s.muted}>No comments yet</Text>}
-          {comments.map(c => (
-            <View key={c.id} style={s.commentRow}>
-              <View style={[s.commentAvatar, { backgroundColor: avatarColor(c.author.fullName) }]}>
-                <Text style={s.commentAvatarText}>{getInitials(c.author.fullName)}</Text>
+        {/* Time Logs */}
+        <View style={st.sectionCard}>
+          <View style={st.sectionHeader}>
+            <Text style={st.sectionTitle}>Time Logs</Text>
+            <Text style={st.totalBadge}>{totalHours}h logged</Text>
+          </View>
+          {timeLogs.length === 0 && <Text style={st.muted}>No time logged yet</Text>}
+          {[...timeLogs].reverse().map(entry => (
+            <View key={entry.id} style={st.timeLogRow}>
+              <View style={st.timeLogInfo}>
+                <Text style={st.timeLogHours}>{entry.hours}h</Text>
+                <Text style={st.timeLogMeta}>{entry.user.fullName} · {new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
               </View>
-              <View style={s.commentBody}>
-                <View style={s.commentHeader}>
-                  <Text style={s.commentAuthor}>{c.author.fullName}</Text>
-                  <Text style={s.commentDate}>{new Date(c.createdAt).toLocaleDateString()}</Text>
-                </View>
-                <Text style={s.commentText}>{c.body}</Text>
-              </View>
-              {c.authorId === user?.id && (
-                <TouchableOpacity onPress={() => handleDeleteComment(c.id)} style={s.deleteBtn}>
-                  <Text style={s.deleteBtnText}>✕</Text>
+              <TouchableOpacity onPress={() => handleDeleteTimeLog(entry.id)} style={st.deleteBtn}><Text style={st.deleteBtnText}>✕</Text></TouchableOpacity>
+            </View>
+          ))}
+          <View style={st.timeLogForm}>
+            <TextInput style={st.timeLogInput} value={logHours} onChangeText={setLogHours} placeholder="Hours" placeholderTextColor="#9ca3af" keyboardType="decimal-pad" />
+            <TouchableOpacity style={st.datePickerBtn} onPress={() => setShowLogDatePicker(true)}>
+              <Text style={st.datePickerText}>{logDate}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[st.logBtn, (!logHours.trim() || busy) && st.btnDisabled]} onPress={handleAddTimeLog} disabled={!logHours.trim() || busy}>
+              <Text style={st.logBtnText}>Log</Text>
+            </TouchableOpacity>
+          </View>
+          {showLogDatePicker && <DateTimePicker value={new Date(logDate)} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(_e, d) => { setShowLogDatePicker(Platform.OS === 'ios'); if (d) setLogDate(d.toISOString().split('T')[0]); }} />}
+        </View>
+
+        {/* Dependencies */}
+        <View style={st.sectionCard}>
+          <Text style={st.sectionTitle}>Dependencies</Text>
+          <View style={st.depSection}>
+            <View style={st.depHeader}>
+              <Text style={st.depLabel}>Blocks ({deps.blocks.length})</Text>
+              <TouchableOpacity onPress={() => openDepPicker('blocks')}><Text style={st.addAction}>+ Add</Text></TouchableOpacity>
+            </View>
+            {deps.blocks.length === 0 && <Text style={st.muted}>None</Text>}
+            {deps.blocks.map(d => (
+              <View key={d.dependencyId} style={st.depRow}>
+                <TouchableOpacity style={st.depLink} onPress={() => navigation.push('TaskDetail', { taskId: d.task.id, projectId })}>
+                  <View style={[st.dot, { backgroundColor: STATUS_CONFIG[d.task.status]?.dotColor ?? '#94a3b8' }]} />
+                  <Text style={st.depTitle} numberOfLines={1}>{d.task.title}</Text>
                 </TouchableOpacity>
-              )}
+                <TouchableOpacity onPress={() => handleRemoveDependency(d.dependencyId)} style={st.deleteBtn}><Text style={st.deleteBtnText}>✕</Text></TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          <View style={[st.depSection, { marginTop: 12 }]}>
+            <View style={st.depHeader}>
+              <Text style={st.depLabel}>Blocked by ({deps.blockedBy.length})</Text>
+              <TouchableOpacity onPress={() => openDepPicker('blockedBy')}><Text style={st.addAction}>+ Add</Text></TouchableOpacity>
+            </View>
+            {deps.blockedBy.length === 0 && <Text style={st.muted}>None</Text>}
+            {deps.blockedBy.map(d => (
+              <View key={d.dependencyId} style={st.depRow}>
+                <TouchableOpacity style={st.depLink} onPress={() => navigation.push('TaskDetail', { taskId: d.task.id, projectId })}>
+                  <View style={[st.dot, { backgroundColor: STATUS_CONFIG[d.task.status]?.dotColor ?? '#94a3b8' }]} />
+                  <Text style={st.depTitle} numberOfLines={1}>{d.task.title}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleRemoveDependency(d.dependencyId)} style={st.deleteBtn}><Text style={st.deleteBtnText}>✕</Text></TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Activity */}
+        <View style={st.sectionCard}>
+          <Text style={st.sectionTitle}>Activity ({activity.length})</Text>
+          {activity.length === 0 && <Text style={st.muted}>No activity yet</Text>}
+          {activity.map(entry => (
+            <View key={entry.id} style={st.activityRow}>
+              <View style={[st.activityAvatar, { backgroundColor: avatarColor(entry.actor.fullName) }]}>
+                <Text style={st.activityAvatarText}>{getInitials(entry.actor.fullName)}</Text>
+              </View>
+              <View style={st.activityBody}>
+                <Text style={st.activityText}>
+                  <Text style={st.activityActor}>{entry.actor.fullName}</Text>{' '}
+                  {formatActivityLine(entry)}
+                </Text>
+                <Text style={st.activityTime}>{formatRelativeTime(entry.createdAt)}</Text>
+              </View>
             </View>
           ))}
         </View>
 
         {/* Attachments */}
-        <View style={s.sectionCard}>
-          <Text style={s.sectionTitle}>Attachments ({attachments.length})</Text>
-          {attachments.length === 0 && <Text style={s.muted}>No attachments</Text>}
+        <View style={st.sectionCard}>
+          <Text style={st.sectionTitle}>Attachments ({attachments.length})</Text>
+          {attachments.length === 0 && <Text style={st.muted}>No attachments</Text>}
           {attachments.map(a => (
-            <View key={a.id} style={s.attachmentRow}>
-              <TouchableOpacity style={s.attachmentLink} onPress={() => Linking.openURL(a.fileUrl)}>
-                <Text style={s.attachmentIcon}>📎</Text>
-                <Text style={s.attachmentName} numberOfLines={1}>{a.fileName}</Text>
+            <View key={a.id} style={st.attachmentRow}>
+              <TouchableOpacity style={st.attachmentLink} onPress={() => Linking.openURL(a.fileUrl)}>
+                <Text style={st.attachmentIcon}>📎</Text>
+                <Text style={st.attachmentName} numberOfLines={1}>{a.fileName}</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteAttachment(a.id)} style={s.deleteBtn}>
-                <Text style={s.deleteBtnText}>✕</Text>
-              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteAttachment(a.id)} style={st.deleteBtn}><Text style={st.deleteBtnText}>✕</Text></TouchableOpacity>
             </View>
           ))}
-          <View style={s.attachForm}>
-            <TextInput style={s.attachInput} value={attName} onChangeText={setAttName} placeholder="File name" placeholderTextColor="#9ca3af" />
-            <TextInput style={s.attachInput} value={attUrl} onChangeText={setAttUrl} placeholder="File URL" placeholderTextColor="#9ca3af" autoCapitalize="none" />
-            <TouchableOpacity style={[s.attachBtn, (!attName.trim() || !attUrl.trim() || busy) && s.btnDisabled]} onPress={handleAddAttachment} disabled={!attName.trim() || !attUrl.trim() || busy}>
-              <Text style={s.attachBtnText}>Add</Text>
+          <View style={st.attachForm}>
+            <TextInput style={st.attachInput} value={attName} onChangeText={setAttName} placeholder="File name" placeholderTextColor="#9ca3af" />
+            <TextInput style={st.attachInput} value={attUrl} onChangeText={setAttUrl} placeholder="File URL" placeholderTextColor="#9ca3af" autoCapitalize="none" />
+            <TouchableOpacity style={[st.attachBtn, (!attName.trim() || !attUrl.trim() || busy) && st.btnDisabled]} onPress={handleAddAttachment} disabled={!attName.trim() || !attUrl.trim() || busy}>
+              <Text style={st.attachBtnText}>Add</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Comments */}
+        <View style={st.sectionCard}>
+          <Text style={st.sectionTitle}>Comments ({comments.length})</Text>
+          {comments.length === 0 && <Text style={st.muted}>No comments yet</Text>}
+          {comments.map(c => (
+            <View key={c.id} style={st.commentRow}>
+              <View style={[st.commentAvatar, { backgroundColor: avatarColor(c.author.fullName) }]}>
+                <Text style={st.commentAvatarText}>{getInitials(c.author.fullName)}</Text>
+              </View>
+              <View style={st.commentBody}>
+                <View style={st.commentHeader}>
+                  <Text style={st.commentAuthor}>{c.author.fullName}</Text>
+                  <Text style={st.commentDate}>{formatRelativeTime(c.createdAt)}</Text>
+                </View>
+                <Text style={st.commentTextStyle}>{c.body}</Text>
+              </View>
+              {c.authorId === user?.id && (
+                <TouchableOpacity onPress={() => handleDeleteComment(c.id)} style={st.deleteBtn}><Text style={st.deleteBtnText}>✕</Text></TouchableOpacity>
+              )}
+            </View>
+          ))}
         </View>
 
         <View style={{ height: 32 }} />
       </ScrollView>
 
       {/* Comment composer pinned to bottom */}
-      <View style={s.composerBar}>
-        <TextInput
-          style={s.composerInput}
-          value={commentText}
-          onChangeText={setCommentText}
-          placeholder="Write a comment..."
-          placeholderTextColor="#9ca3af"
-          multiline
-        />
-        <TouchableOpacity style={[s.sendBtn, (!commentText.trim() || busy) && s.btnDisabled]} onPress={handlePostComment} disabled={!commentText.trim() || busy}>
-          {busy ? <ActivityIndicator color="#fff" size="small" /> : <Text style={s.sendBtnText}>Send</Text>}
+      <View style={st.composerBar}>
+        <TextInput style={st.composerInput} value={commentText} onChangeText={setCommentText} placeholder="Write a comment..." placeholderTextColor="#9ca3af" multiline />
+        <TouchableOpacity style={[st.sendBtn, (!commentText.trim() || busy) && st.btnDisabled]} onPress={handlePostComment} disabled={!commentText.trim() || busy}>
+          {busy ? <ActivityIndicator color="#fff" size="small" /> : <Text style={st.sendBtnText}>Send</Text>}
         </TouchableOpacity>
       </View>
 
-      {/* STATUS MOVE SHEET — same logic as Phase 3 board */}
+      {/* STATUS MOVE SHEET */}
       <Modal visible={moveSheetVisible} transparent animationType="slide">
-        <TouchableOpacity style={s.sheetOverlay} activeOpacity={1} onPress={() => setMoveSheetVisible(false)}>
-          <View style={s.sheetCard}>
-            <Text style={s.sheetTitle}>Change Status</Text>
-            <Text style={s.moveCurrentLabel}>Current: {sc.label}</Text>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setMoveSheetVisible(false)}>
+          <View style={st.sheetCard}>
+            <Text style={st.sheetTitle}>Change Status</Text>
+            <Text style={st.moveCurrentLabel}>Current: {sc.label}</Text>
             {(TRANSITIONS[task.status] ?? []).map(status => {
               const cfg = STATUS_CONFIG[status];
               return (
-                <TouchableOpacity
-                  key={status}
-                  style={[s.moveOption, { backgroundColor: cfg.bg, borderColor: cfg.border }]}
-                  onPress={() => handleStatusMove(status)}
-                >
-                  <View style={[s.dot, { backgroundColor: cfg.dotColor }]} />
-                  <Text style={[s.moveOptionText, { color: cfg.text }]}>Move to {cfg.label}</Text>
+                <TouchableOpacity key={status} style={[st.moveOption, { backgroundColor: cfg.bg, borderColor: cfg.border }]} onPress={() => handleStatusMove(status)}>
+                  <View style={[st.dot, { backgroundColor: cfg.dotColor }]} />
+                  <Text style={[st.moveOptionText, { color: cfg.text }]}>Move to {cfg.label}</Text>
                 </TouchableOpacity>
               );
             })}
-            <TouchableOpacity style={s.sheetCancel} onPress={() => setMoveSheetVisible(false)}>
-              <Text style={s.sheetCancelText}>Cancel</Text>
+            <TouchableOpacity style={st.sheetCancel} onPress={() => setMoveSheetVisible(false)}>
+              <Text style={st.sheetCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -514,13 +583,13 @@ export default function TaskDetailScreen({ route }: Props) {
 
       {/* GENERIC PICKER SHEET */}
       <Modal visible={!!pickerSheet} transparent animationType="fade">
-        <TouchableOpacity style={s.sheetOverlay} activeOpacity={1} onPress={() => setPickerSheet(null)}>
-          <View style={s.sheetCard}>
-            <Text style={s.sheetTitle}>Select</Text>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setPickerSheet(null)}>
+          <View style={st.sheetCard}>
+            <Text style={st.sheetTitle}>Select</Text>
             <ScrollView style={{ maxHeight: 300 }}>
               {pickerSheet?.options.map(opt => (
-                <TouchableOpacity key={opt.value} style={s.sheetOption} onPress={() => handleFieldChange(pickerSheet.field, opt.value)}>
-                  <Text style={s.sheetOptionText}>{opt.label}</Text>
+                <TouchableOpacity key={opt.value} style={st.sheetOption} onPress={() => handleFieldChange(pickerSheet.field, opt.value)}>
+                  <Text style={st.sheetOptionText}>{opt.label}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -530,36 +599,53 @@ export default function TaskDetailScreen({ route }: Props) {
 
       {/* LABEL SHEET */}
       <Modal visible={labelSheetVisible} transparent animationType="slide">
-        <TouchableOpacity style={s.sheetOverlay} activeOpacity={1} onPress={() => setLabelSheetVisible(false)}>
-          <View style={s.sheetCard}>
-            <Text style={s.sheetTitle}>Manage Labels</Text>
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setLabelSheetVisible(false)}>
+          <View style={st.sheetCard}>
+            <Text style={st.sheetTitle}>Manage Labels</Text>
             <ScrollView style={{ maxHeight: 280 }}>
               {projectLabels.map(label => {
                 const attached = attachedIds.has(label.id);
                 return (
-                  <TouchableOpacity key={label.id} style={s.labelOption} onPress={() => handleToggleLabel(label.id, attached)}>
-                    <View style={[s.labelDot, { backgroundColor: label.color }]} />
-                    <Text style={s.labelOptionText}>{label.name}</Text>
-                    {attached && <Text style={s.checkMark}>✓</Text>}
+                  <TouchableOpacity key={label.id} style={st.labelOption} onPress={() => handleToggleLabel(label.id, attached)}>
+                    <View style={[st.labelDot, { backgroundColor: label.color }]} />
+                    <Text style={st.labelOptionText}>{label.name}</Text>
+                    {attached && <Text style={st.checkMark}>✓</Text>}
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
-            <View style={s.newLabelRow}>
-              <TextInput style={s.newLabelInput} value={newLabelName} onChangeText={setNewLabelName} placeholder="New label name" placeholderTextColor="#9ca3af" />
-              <TouchableOpacity style={s.colorSwatch} onPress={() => {
-                const colors = ['#0C66E4', '#dc2626', '#059669', '#f59e0b', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6'];
-                const idx = colors.indexOf(newLabelColor);
-                setNewLabelColor(colors[(idx + 1) % colors.length]);
-              }}>
-                <View style={[s.swatchInner, { backgroundColor: newLabelColor }]} />
+            <View style={st.newLabelRow}>
+              <TextInput style={st.newLabelInput} value={newLabelName} onChangeText={setNewLabelName} placeholder="New label name" placeholderTextColor="#9ca3af" />
+              <TouchableOpacity style={st.colorSwatch} onPress={() => { const colors = ['#0C66E4', '#dc2626', '#059669', '#f59e0b', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6']; setNewLabelColor(colors[(colors.indexOf(newLabelColor) + 1) % colors.length]); }}>
+                <View style={[st.swatchInner, { backgroundColor: newLabelColor }]} />
               </TouchableOpacity>
-              <TouchableOpacity style={[s.newLabelBtn, !newLabelName.trim() && s.btnDisabled]} onPress={handleCreateLabel} disabled={!newLabelName.trim()}>
-                <Text style={s.newLabelBtnText}>Create</Text>
+              <TouchableOpacity style={[st.newLabelBtn, !newLabelName.trim() && st.btnDisabled]} onPress={handleCreateLabel} disabled={!newLabelName.trim()}>
+                <Text style={st.newLabelBtnText}>Create</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity style={s.sheetCancel} onPress={() => setLabelSheetVisible(false)}>
-              <Text style={s.sheetCancelText}>Done</Text>
+            <TouchableOpacity style={st.sheetCancel} onPress={() => setLabelSheetVisible(false)}>
+              <Text style={st.sheetCancelText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* DEPENDENCY PICKER SHEET */}
+      <Modal visible={depPickerVisible} transparent animationType="slide">
+        <TouchableOpacity style={st.sheetOverlay} activeOpacity={1} onPress={() => setDepPickerVisible(false)}>
+          <View style={st.sheetCard}>
+            <Text style={st.sheetTitle}>Add {depDirection === 'blocks' ? 'Blocked Task' : 'Blocking Task'}</Text>
+            <ScrollView style={{ maxHeight: 350 }}>
+              {depCandidates.length === 0 && <Text style={st.muted}>No tasks available to link</Text>}
+              {depCandidates.map(t => (
+                <TouchableOpacity key={t.id} style={st.depPickerRow} onPress={() => handleAddDependency(t.id)}>
+                  <View style={[st.dot, { backgroundColor: STATUS_CONFIG[t.status]?.dotColor ?? '#94a3b8' }]} />
+                  <Text style={st.depPickerText} numberOfLines={1}>{t.title}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={st.sheetCancel} onPress={() => setDepPickerVisible(false)}>
+              <Text style={st.sheetCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -568,7 +654,7 @@ export default function TaskDetailScreen({ route }: Props) {
   );
 }
 
-const s = StyleSheet.create({
+const st = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#f9fafb' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb' },
   errorText: { fontSize: 16, color: '#dc2626' },
@@ -596,6 +682,32 @@ const s = StyleSheet.create({
   labelDot: { width: 8, height: 8, borderRadius: 4 },
   labelChipText: { fontSize: 12, fontWeight: '600' },
   muted: { fontSize: 13, color: '#9ca3af' },
+  totalBadge: { fontSize: 13, fontWeight: '700', color: '#0C66E4' },
+  timeLogRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  timeLogInfo: { flex: 1 },
+  timeLogHours: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  timeLogMeta: { fontSize: 12, color: '#6b7280', marginTop: 1 },
+  timeLogForm: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  timeLogInput: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 14, color: '#1a1a1a' },
+  datePickerBtn: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  datePickerText: { fontSize: 13, color: '#1a1a1a' },
+  logBtn: { backgroundColor: '#0C66E4', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9 },
+  logBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  depSection: {},
+  depHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  depLabel: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  depRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  depLink: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  depTitle: { fontSize: 14, color: '#0C66E4', fontWeight: '500' },
+  depPickerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  depPickerText: { fontSize: 15, color: '#1a1a1a', flex: 1 },
+  activityRow: { flexDirection: 'row', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+  activityAvatar: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  activityAvatarText: { color: '#fff', fontSize: 10, fontWeight: '600' },
+  activityBody: { flex: 1 },
+  activityText: { fontSize: 13, color: '#374151' },
+  activityActor: { fontWeight: '600', color: '#1a1a1a' },
+  activityTime: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
   commentRow: { flexDirection: 'row', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
   commentAvatar: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   commentAvatarText: { color: '#fff', fontSize: 11, fontWeight: '600' },
@@ -603,7 +715,7 @@ const s = StyleSheet.create({
   commentHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
   commentAuthor: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
   commentDate: { fontSize: 11, color: '#9ca3af' },
-  commentText: { fontSize: 14, color: '#374151' },
+  commentTextStyle: { fontSize: 14, color: '#374151' },
   deleteBtn: { width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   deleteBtnText: { color: '#dc2626', fontSize: 13, fontWeight: '600' },
   attachmentRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
