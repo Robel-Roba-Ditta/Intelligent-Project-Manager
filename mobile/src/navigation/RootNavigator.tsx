@@ -11,6 +11,7 @@ import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectDetailScreen from '../screens/ProjectDetailScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const AuthStack = createNativeStackNavigator();
@@ -37,6 +38,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      <HomeStack.Screen name="Search" component={SearchScreen} options={{ headerShown: false }} />
     </HomeStack.Navigator>
   );
 }
