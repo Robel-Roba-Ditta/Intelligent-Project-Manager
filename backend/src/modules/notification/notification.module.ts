@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './domain/notification.entity';
+import { DeviceToken } from './domain/device-token.entity';
 import { Task } from '../task/domain/task.entity';
 import { Watcher } from '../watcher/domain/watcher.entity';
 import { User } from '../user/domain/user.entity';
@@ -10,7 +11,7 @@ import { NotificationController } from './api/controllers/notification.controlle
 import { NotificationGateway } from './api/gateways/notification.gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification, Task, Watcher, User])],
+  imports: [TypeOrmModule.forFeature([Notification, DeviceToken, Task, Watcher, User])],
   controllers: [NotificationController],
   providers: [NotificationListener, NotificationService, NotificationGateway],
   exports: [NotificationService, NotificationGateway],

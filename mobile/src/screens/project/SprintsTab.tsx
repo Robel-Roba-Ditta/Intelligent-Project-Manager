@@ -9,7 +9,9 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Dimensions,
 } from 'react-native';
+import Svg, { Line, Circle as SvgCircle, Polyline, G, Text as SvgText } from 'react-native-svg';
 import {
   listSprints,
   createSprint,
@@ -17,10 +19,64 @@ import {
   deleteSprint,
   startSprint,
   completeSprint,
+  getSprintBurndown,
   extractErrorMessage,
 } from '@ipm/shared';
-import type { SprintDto } from '@ipm/shared';
+import type { SprintDto, BurndownData } from '@ipm/shared';
 import { api } from '../../lib/api';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CHART_W = SCREEN_WIDTH - 80;
+const CHART_H = 140;
+const CHART_PAD = 30;
+
+function BurndownChart({ data }: { data: BurndownData }) {
+  const { days, totalTasks } = data;
+  if (!days.length || totalTasks === 0) return <Text style={styles.muted}>No burndown data</Text>;
+
+  const plotW = CHART_W - CHART_PAD * 2;
+  const plotH = CHART_H - CHART_PAD;
+  const maxY = totalTasks;
+  const n = days.length;
+
+  const toX = (i: number) => CHART_PAD + (i / Math.max(n - 1, 1)) * plotW;
+  const toY = (v: number) => CHART_PAD / 2 + plotH - (v / maxY) * plotH;
+
+  const idealPoints = days.map((d, i) => `${toX(i)},${toY(d.idealRemaining)}`).join(' ');
+  const actualPoints = days.map((d, i) => `${toX(i)},${toY(d.actualRemaining)}`).join(' ');
+
+  return (
+    <View style={styles.burndownCard}>
+      <Text style={styles.burndownTitle}>Burndown</Text>
+      <View style={styles.burndownLegend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendLine, { backgroundColor: '#94a3b8' }]} />
+          <Text style={styles.legendText}>Ideal</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendLine, { backgroundColor: '#0C66E4' }]} />
+          <Text style={styles.legendText}>Actual</Text>
+        </View>
+      </View>
+      <Svg width={CHART_W} height={CHART_H}>
+        {/* Y axis labels */}
+        <SvgText x={4} y={toY(maxY) + 4} fontSize="9" fill="#9ca3af">{maxY}</SvgText>
+        <SvgText x={4} y={toY(0) + 4} fontSize="9" fill="#9ca3af">0</SvgText>
+        {/* X axis labels (first and last) */}
+        <SvgText x={toX(0)} y={CHART_H - 2} fontSize="8" fill="#9ca3af" textAnchor="start">{days[0].date.slice(5)}</SvgText>
+        <SvgText x={toX(n - 1)} y={CHART_H - 2} fontSize="8" fill="#9ca3af" textAnchor="end">{days[n - 1].date.slice(5)}</SvgText>
+        {/* Ideal line */}
+        <Polyline points={idealPoints} fill="none" stroke="#94a3b8" strokeWidth="2" strokeDasharray="6,3" />
+        {/* Actual line */}
+        <Polyline points={actualPoints} fill="none" stroke="#0C66E4" strokeWidth="2.5" />
+        {/* Actual data points */}
+        {days.map((d, i) => (
+          <SvgCircle key={i} cx={toX(i)} cy={toY(d.actualRemaining)} r={3} fill="#0C66E4" />
+        ))}
+      </Svg>
+    </View>
+  );
+}
 
 const STATUS_CONFIG: Record<string, { label: string; dotColor: string; bg: string; border: string; text: string }> = {
   PLANNED: { label: 'Planned', dotColor: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' },
@@ -47,6 +103,8 @@ export default function SprintsTab({ projectId }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [goal, setGoal] = useState('');
+  const [expandedBurndown, setExpandedBurndown] = useState<number | null>(null);
+  const [burndownData, setBurndownData] = useState<Record<number, BurndownData>>({});
 
   const load = useCallback(async () => {
     try {
@@ -219,6 +277,38 @@ export default function SprintsTab({ projectId }: Props) {
                   <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Burndown toggle for active/completed sprints */}
+              {(sprint.status === 'ACTIVE' || sprint.status === 'COMPLETED') && (
+                <TouchableOpacity
+                  style={styles.burndownToggle}
+                  onPress={async () => {
+                    if (expandedBurndown === sprint.id) {
+                      setExpandedBurndown(null);
+                    } else {
+                      setExpandedBurndown(sprint.id);
+                      if (!burndownData[sprint.id]) {
+                        try {
+                          const bd = await getSprintBurndown(api, sprint.id);
+                          setBurndownData(prev => ({ ...prev, [sprint.id]: bd }));
+                        } catch (err) {
+                          Alert.alert('Error', extractErrorMessage(err));
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <Text style={styles.burndownToggleText}>
+                    {expandedBurndown === sprint.id ? '▲ Hide Burndown' : '▼ Show Burndown'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {expandedBurndown === sprint.id && burndownData[sprint.id] && (
+                <BurndownChart data={burndownData[sprint.id]} />
+              )}
+              {expandedBurndown === sprint.id && !burndownData[sprint.id] && (
+                <ActivityIndicator size="small" color="#0C66E4" style={{ marginTop: 10 }} />
+              )}
             </View>
           );
         }}
@@ -298,4 +388,13 @@ const styles = StyleSheet.create({
   submitBtn: { backgroundColor: '#0C66E4', paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8 },
   buttonDisabled: { opacity: 0.5 },
   submitText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
+  muted: { fontSize: 13, color: '#9ca3af' },
+  burndownToggle: { marginTop: 10, paddingVertical: 6 },
+  burndownToggleText: { fontSize: 13, color: '#0C66E4', fontWeight: '500' },
+  burndownCard: { marginTop: 10, paddingTop: 8 },
+  burndownTitle: { fontSize: 13, fontWeight: '600', color: '#1a1a1a', marginBottom: 4 },
+  burndownLegend: { flexDirection: 'row', gap: 16, marginBottom: 6 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendLine: { width: 16, height: 3, borderRadius: 1.5 },
+  legendText: { fontSize: 11, color: '#6b7280' },
 });

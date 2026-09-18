@@ -31,6 +31,7 @@ import { TaskDependency } from './modules/dependency/domain/task-dependency.enti
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { Notification } from './modules/notification/domain/notification.entity';
+import { DeviceToken } from './modules/notification/domain/device-token.entity';
 import { SearchModule } from './modules/search/search.module';
 
 @Module({
@@ -51,7 +52,7 @@ import { SearchModule } from './modules/search/search.module';
         entities: [
           User, Project, ProjectMember, Epic, Sprint, Task, Label,
           Comment, Attachment, Watcher,
-          ActivityLog, TimeLog, TaskDependency, Notification,
+          ActivityLog, TimeLog, TaskDependency, Notification, DeviceToken,
         ],
         
         
