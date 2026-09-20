@@ -15,7 +15,7 @@ import {
   loginRequest as _loginRequest,
   meRequest as _meRequest,
 } from '@ipm/shared';
-import { api } from '../lib/api';
+import { api, setOnUnauthorized } from '../lib/api';
 import { getToken, setToken, clearToken } from '../lib/authStorage';
 
 Notifications.setNotificationHandler({
@@ -115,6 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await clearToken();
     setUser(null);
+  }, []);
+
+  // Register 401 interceptor for graceful sign-out on stale tokens
+  useEffect(() => {
+    setOnUnauthorized(() => setUser(null));
+    return () => setOnUnauthorized(null);
   }, []);
 
   return (

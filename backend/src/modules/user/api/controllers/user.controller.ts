@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Param, Body, UseGuards, Request, ForbiddenException, ParseIntPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { UserService } from '../../application/user.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,6 +17,19 @@ export class UserController {
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Patch(':id/active')
+  async setActive(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { isActive: boolean },
+    @Request() req: any,
+  ) {
+    // Only site admins can deactivate/reactivate users
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Only site admins can manage user accounts');
+    }
+    return this.userService.setActive(id, body.isActive);
   }
 
   @Post('me/push-token')

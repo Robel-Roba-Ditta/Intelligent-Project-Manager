@@ -245,6 +245,8 @@ export interface UserDto {
   id: number;
   email: string;
   fullName: string;
+  role?: string;
+  isActive?: boolean;
 }
 
 export interface SearchResult {
