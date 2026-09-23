@@ -106,6 +106,7 @@ export default function TasksTab({ projectId }: Props) {
   // Board column
   const [boardColumn, setBoardColumn] = useState(0);
   const boardRef = useRef<ScrollView>(null);
+  const navigation = useNavigation<any>();
 
   const activeFilterCount = [filterStatus, filterPriority, filterAssignee, filterSprint, filterSearch].filter(Boolean).length;
 
@@ -337,8 +338,6 @@ export default function TasksTab({ projectId }: Props) {
       </TouchableOpacity>
     );
   }
-
-  const navigation = useNavigation<any>();
 
   function renderListCard(task: TaskDto) {
     return renderTaskCardInner(task, () => navigation.navigate('TaskDetail', { taskId: task.id, projectId }));

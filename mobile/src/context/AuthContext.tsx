@@ -7,8 +7,7 @@ import React, {
   type ReactNode,
 } from 'react';
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import type { AuthUser, AuthResponse } from '@ipm/shared';
 import {
   registerRequest as _registerRequest,
@@ -18,18 +17,33 @@ import {
 import { api, setOnUnauthorized } from '../lib/api';
 import { getToken, setToken, clearToken } from '../lib/authStorage';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Push notifications are NOT supported in Expo Go (SDK 53+).
+// Only set up notification handling in development builds / standalone apps.
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+if (!isExpoGo) {
+  try {
+    const Notifications = require('expo-notifications');
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {
+    // expo-notifications not available
+  }
+}
 
 async function registerPushToken() {
+  if (isExpoGo) return; // Skip in Expo Go
   try {
+    const Device = require('expo-device');
+    const Notifications = require('expo-notifications');
+
     if (!Device.isDevice) return; // Push only works on real devices
 
     const { status: existing } = await Notifications.getPermissionsAsync();

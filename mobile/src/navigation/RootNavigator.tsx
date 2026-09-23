@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
@@ -13,6 +13,21 @@ import TaskDetailScreen from '../screens/TaskDetailScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+
+// Simple emoji-based tab icon component (no extra packages needed)
+function TabIcon({ label, focused }: { label: string; focused: boolean }) {
+  const icons: Record<string, string> = {
+    Home: '🏠',
+    Projects: '📁',
+    Notifications: '🔔',
+    Profile: '👤',
+  };
+  return (
+    <Text style={{ fontSize: focused ? 22 : 20, opacity: focused ? 1 : 0.6 }}>
+      {icons[label] || '●'}
+    </Text>
+  );
+}
 
 const AuthStack = createNativeStackNavigator();
 function AuthNavigator() {
@@ -109,15 +124,25 @@ export default function RootNavigator() {
 
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: '#0C66E4',
-        tabBarInactiveTintColor: '#6b7280',
+        tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
           backgroundColor: '#ffffff',
           borderTopColor: '#e5e7eb',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 4,
         },
-      }}
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600' as const,
+        },
+        tabBarIcon: ({ focused }) => (
+          <TabIcon label={route.name} focused={focused} />
+        ),
+      })}
     >
       <Tab.Screen name="Home" component={HomeStackScreen} />
       <Tab.Screen name="Projects" component={ProjectsStackScreen} />
